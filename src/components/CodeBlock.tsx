@@ -4,6 +4,7 @@ import { Check, Copy } from 'lucide-react';
 interface CodeBlockProps {
   code: string;
   className?: string;
+  lang?: string;
 }
 
 export const CodeBlock = memo(({ code, className = '' }: CodeBlockProps) => {
@@ -27,8 +28,8 @@ export const CodeBlock = memo(({ code, className = '' }: CodeBlockProps) => {
   return (
     <div className={`relative group ${className}`}>
       <pre
-        className="bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-3 pr-12 text-sm font-mono text-[#e6edf3] overflow-x-auto leading-relaxed"
-        style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+        className="rounded-lg px-4 py-3 pr-12 text-sm font-mono overflow-x-auto leading-relaxed
+          bg-[hsl(var(--code-bg))] border border-[hsl(var(--code-border))] text-[hsl(var(--code-text))]"
       >
         <code>{code}</code>
       </pre>
@@ -36,11 +37,11 @@ export const CodeBlock = memo(({ code, className = '' }: CodeBlockProps) => {
         onClick={handleCopy}
         aria-label={copied ? 'Copied!' : 'Copy code'}
         className="absolute top-2.5 right-2.5 p-1.5 rounded-md transition-all duration-150
-          text-[#8b949e] hover:text-[#e6edf3] hover:bg-[#21262d]
+          text-muted-foreground hover:text-foreground hover:bg-muted
           opacity-0 group-hover:opacity-100 focus:opacity-100"
       >
         {copied
-          ? <Check className="w-4 h-4 text-green-400" />
+          ? <Check className="w-4 h-4 text-green-500" />
           : <Copy className="w-4 h-4" />
         }
       </button>

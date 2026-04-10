@@ -10,17 +10,17 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-loader-animate": "^1.0.0",
-    "lucide-react": "^0.462.0",
-    "clsx": "^2.1.1",
+    "react-loader-animate": "file:../react-loader-animate",
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@types/node": "^22.16.5",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.32.0",
