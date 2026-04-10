@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
+import React, { memo, useState, useCallback, useMemo, useRef } from 'react';
 import {
   SpinLoader, DotsLoader, PulseLoader, WaveLoader, SquareLoader,
   FlipLoader, GradientSpinner, OrbitLoader, TriangleLoader, DiamondLoader,
@@ -13,681 +13,743 @@ import {
   BallTriangleLoader, HashLoader, SyncLoader, MutatingDotsLoader, ThreeDotsFadeLoader,
   Grid3x3Loader, BarsLoader, RotatingLoader,
 } from 'react-loader-animate';
-import { LoaderCard } from '@/components/LoaderCard';
+import type { LoaderProps } from 'react-loader-animate';
 import { CodeBlock } from '@/components/CodeBlock';
-import { LazySection } from '@/components/LazySection';
 import { useTheme } from '@/hooks/useTheme';
-import { Moon, Sun, Github, Package, Check, Copy, Search, X } from 'lucide-react';
+import {
+  Moon, Sun, Github, Package, Check, Copy, Search, X, Menu,
+  ChevronDown, ChevronRight,
+} from 'lucide-react';
 
-// ─── Version ─────────────────────────────────────────────────────────────────
-const PKG_VERSION = '1.0.3';
+const PKG_VERSION = '1.1.1';
 
-// ─── Shared helpers ───────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface SectionHeaderProps {
-  badge: string;
+type LoaderCategory = 'basic' | 'split' | 'advanced';
+
+interface LoaderEntry {
   title: string;
+  componentName: string;
+  Component: React.ComponentType<LoaderProps>;
+  category: LoaderCategory;
   description: string;
+  tags?: string[];
 }
-const SectionHeader = memo(({ badge, title, description }: SectionHeaderProps) => (
-  <div className="mb-10 max-w-4xl mx-auto">
-    <div className="flex items-center gap-3 mb-2">
-      <span className="inline-flex items-center justify-center w-7 h-7 text-xs font-bold font-mono rounded-lg bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)]">
-        {badge}
-      </span>
-      <h2 className="text-2xl font-bold text-foreground tracking-tight">{title}</h2>
-    </div>
-    <p className="text-muted-foreground pl-10 leading-relaxed">{description}</p>
-  </div>
-));
-SectionHeader.displayName = 'SectionHeader';
 
-// ─── Inline copy button ───────────────────────────────────────────────────────
+// ─── Loader Registry ─────────────────────────────────────────────────────────
+// No pre-rendered JSX nodes — components are only instantiated when selected
 
-const CopyButton = memo(({ text, className = '' }: { text: string; className?: string }) => {
+const LOADER_REGISTRY: LoaderEntry[] = [
+  // ── Basic ─────────────────────────────────────────────────────────────────
+  { title: 'Spin Loader',      componentName: 'SpinLoader',       Component: SpinLoader,       category: 'basic',    description: 'Classic spinning ring animation',          tags: ['spin', 'ring'] },
+  { title: 'Dots Loader',      componentName: 'DotsLoader',       Component: DotsLoader,       category: 'basic',    description: 'Three bouncing dots',                      tags: ['dots', 'bounce'] },
+  { title: 'Pulse Loader',     componentName: 'PulseLoader',      Component: PulseLoader,      category: 'basic',    description: 'Pulsing circle animation',                 tags: ['pulse', 'circle'] },
+  { title: 'Wave Loader',      componentName: 'WaveLoader',       Component: WaveLoader,       category: 'basic',    description: 'Wave-like bars animation',                 tags: ['wave', 'bars'] },
+  { title: 'Square Morph',     componentName: 'SquareLoader',     Component: SquareLoader,     category: 'basic',    description: 'Morphing square shape',                    tags: ['square', 'morph'] },
+  { title: 'Flip Loader',      componentName: 'FlipLoader',       Component: FlipLoader,       category: 'basic',    description: 'Flipping square in 3D',                    tags: ['flip', '3d'] },
+  { title: 'Gradient Spinner', componentName: 'GradientSpinner',  Component: GradientSpinner,  category: 'basic',    description: 'Spinner with conic gradient effect',       tags: ['gradient', 'spinner'] },
+  { title: 'Orbit Loader',     componentName: 'OrbitLoader',      Component: OrbitLoader,      category: 'basic',    description: 'Orbiting dots around a center point',     tags: ['orbit', 'dots'] },
+  { title: 'Triangle Loader',  componentName: 'TriangleLoader',   Component: TriangleLoader,   category: 'basic',    description: 'Rotating triangle shape',                  tags: ['triangle', 'rotate'] },
+  { title: 'Diamond Loader',   componentName: 'DiamondLoader',    Component: DiamondLoader,    category: 'basic',    description: 'Spinning diamond / rhombus',               tags: ['diamond'] },
+  { title: 'Cross Loader',     componentName: 'CrossLoader',      Component: CrossLoader,      category: 'basic',    description: 'Rotating cross / plus sign',               tags: ['cross', 'plus'] },
+  { title: 'Butterfly Loader', componentName: 'ButterflyLoader',  Component: ButterflyLoader,  category: 'basic',    description: 'Butterfly wing animation',                 tags: ['butterfly'] },
+  { title: 'Hexagon Loader',   componentName: 'HexagonLoader',    Component: HexagonLoader,    category: 'basic',    description: 'Spinning hexagon shape',                   tags: ['hexagon'] },
+  { title: 'Segment Loader',   componentName: 'SegmentLoader',    Component: SegmentLoader,    category: 'basic',    description: 'Segmented ring with staggered dash',       tags: ['segment', 'ring'] },
+  { title: 'Arrow Loader',     componentName: 'ArrowLoader',      Component: ArrowLoader,      category: 'basic',    description: 'Rotating arrow indicator',                 tags: ['arrow'] },
+  { title: 'Grid Loader',      componentName: 'GridLoader',       Component: GridLoader,       category: 'basic',    description: '2×2 grid pulse animation',                 tags: ['grid'] },
+  { title: 'Star Loader',      componentName: 'StarLoader',       Component: StarLoader,       category: 'basic',    description: 'Twinkling star animation',                 tags: ['star'] },
+  { title: 'Pentagon Loader',  componentName: 'PentagonLoader',   Component: PentagonLoader,   category: 'basic',    description: 'Spinning pentagon shape',                  tags: ['pentagon'] },
+  { title: 'Chevron Loader',   componentName: 'ChevronLoader',    Component: ChevronLoader,    category: 'basic',    description: 'Cascading chevron arrows',                 tags: ['chevron', 'arrow'] },
+  { title: 'Spiral Loader',    componentName: 'SpiralLoader',     Component: SpiralLoader,     category: 'basic',    description: 'Unwinding spiral animation',               tags: ['spiral'] },
+  { title: 'Ring Loader',      componentName: 'RingLoader',       Component: RingLoader,       category: 'basic',    description: 'Multiple concentric rings',                tags: ['ring'] },
+  { title: 'Clock Loader',     componentName: 'ClockLoader',      Component: ClockLoader,      category: 'basic',    description: 'Clock-hand sweep animation',               tags: ['clock', 'time'] },
+  { title: 'Bar Loader',       componentName: 'BarLoader',        Component: BarLoader,        category: 'basic',    description: 'Progress bar style loader',                tags: ['bar', 'progress'] },
+  { title: 'Bounce Ball',      componentName: 'BounceBallLoader', Component: BounceBallLoader, category: 'basic',    description: 'Bouncing ball animation',                  tags: ['bounce', 'ball'] },
+  { title: 'DNA Loader',       componentName: 'DNALoader',        Component: DNALoader,        category: 'basic',    description: 'Double helix DNA strand',                  tags: ['dna', 'helix'] },
+  { title: 'Heartbeat',        componentName: 'HeartbeatLoader',  Component: HeartbeatLoader,  category: 'basic',    description: 'Heart pulse wave',                         tags: ['heart', 'pulse'] },
+  { title: 'Cube Loader',      componentName: 'CubeLoader',       Component: CubeLoader,       category: 'basic',    description: 'Rotating 3D cube',                         tags: ['cube', '3d'] },
+  { title: 'Infinity Loader',  componentName: 'InfinityLoader',   Component: InfinityLoader,   category: 'basic',    description: 'Infinite loop symbol animation',           tags: ['infinity', 'loop'] },
+  { title: 'Gear Loader',      componentName: 'GearLoader',       Component: GearLoader,       category: 'basic',    description: 'Spinning gear / cog wheel',                tags: ['gear', 'cog'] },
+  { title: 'Pyramid Loader',   componentName: 'PyramidLoader',    Component: PyramidLoader,    category: 'basic',    description: 'Layered pyramid animation',                tags: ['pyramid'] },
+  { title: 'Hourglass',        componentName: 'HourglassLoader',  Component: HourglassLoader,  category: 'basic',    description: 'Flipping hourglass timer',                 tags: ['hourglass', 'timer'] },
+  { title: 'Radar',            componentName: 'RadarLoader',      Component: RadarLoader,      category: 'basic',    description: 'Radar sweep scan effect',                  tags: ['radar', 'scan'] },
+  { title: 'Typing Dots',      componentName: 'TypingDotsLoader', Component: TypingDotsLoader, category: 'basic',    description: 'Chat typing indicator dots',               tags: ['typing', 'chat', 'dots'] },
+  { title: 'Pendulum',         componentName: 'PendulumLoader',   Component: PendulumLoader,   category: 'basic',    description: 'Swinging pendulum motion',                 tags: ['pendulum', 'swing'] },
+  { title: 'Atom',             componentName: 'AtomLoader',       Component: AtomLoader,       category: 'basic',    description: 'Orbiting electrons around a nucleus',      tags: ['atom', 'orbit'] },
+  // ── Split & Transform ─────────────────────────────────────────────────────
+  { title: 'Corner Squares',   componentName: 'CornerSquaresLoader',  Component: CornerSquaresLoader,  category: 'split', description: 'Four corner squares rotating',          tags: ['corner', 'squares'] },
+  { title: 'Square Split',     componentName: 'SquareSplitLoader',    Component: SquareSplitLoader,    category: 'split', description: 'Square splitting apart',                tags: ['square', 'split'] },
+  { title: 'Triangle Split',   componentName: 'TriangleSplitLoader',  Component: TriangleSplitLoader,  category: 'split', description: 'Triangle splitting animation',          tags: ['triangle', 'split'] },
+  { title: 'Circle Split',     componentName: 'CircleSplitLoader',    Component: CircleSplitLoader,    category: 'split', description: 'Circle splitting into arcs',            tags: ['circle', 'split'] },
+  { title: 'Diamond Split',    componentName: 'DiamondSplitLoader',   Component: DiamondSplitLoader,   category: 'split', description: 'Diamond splitting into pieces',         tags: ['diamond', 'split'] },
+  { title: 'Hexagon Split',    componentName: 'HexagonSplitLoader',   Component: HexagonSplitLoader,   category: 'split', description: 'Hexagon splitting animation',           tags: ['hexagon', 'split'] },
+  // ── Advanced / Custom Colour ──────────────────────────────────────────────
+  { title: 'Color Ring',        componentName: 'ColorRingLoader',        Component: ColorRingLoader,        category: 'advanced', description: 'Multi-color segmented ring',                    tags: ['ring', 'color', 'multi'] },
+  { title: 'Circular Progress', componentName: 'CircularProgressLoader', Component: CircularProgressLoader, category: 'advanced', description: 'Circular progress indicator with stroke',       tags: ['progress', 'circle'] },
+  { title: 'Tail Spin',         componentName: 'TailSpinLoader',         Component: TailSpinLoader,         category: 'advanced', description: 'SVG tail-spin ring loader',                     tags: ['tailspin', 'svg'] },
+  { title: 'Ball Triangle',     componentName: 'BallTriangleLoader',     Component: BallTriangleLoader,     category: 'advanced', description: 'Three balls forming a triangle',                tags: ['ball', 'triangle'] },
+  { title: 'Hash Loader',       componentName: 'HashLoader',             Component: HashLoader,             category: 'advanced', description: 'Rotating hash / grid pattern',                  tags: ['hash', 'grid'] },
+  { title: 'Sync Loader',       componentName: 'SyncLoader',             Component: SyncLoader,             category: 'advanced', description: 'Syncing bars with stagger delay',               tags: ['sync', 'bars'] },
+  { title: 'Mutating Dots',     componentName: 'MutatingDotsLoader',     Component: MutatingDotsLoader,     category: 'advanced', description: 'Morphing cluster of dots',                      tags: ['dots', 'morph'] },
+  { title: 'Three Dots Fade',   componentName: 'ThreeDotsFadeLoader',    Component: ThreeDotsFadeLoader,    category: 'advanced', description: 'Three dots with fade-in sequence',              tags: ['dots', 'fade'] },
+  { title: 'Grid 3×3',          componentName: 'Grid3x3Loader',          Component: Grid3x3Loader,          category: 'advanced', description: '3×3 grid wave animation',                       tags: ['grid', 'wave'] },
+  { title: 'Bars',              componentName: 'BarsLoader',             Component: BarsLoader,             category: 'advanced', description: 'Vertical bars scaling animation',               tags: ['bars', 'scale'] },
+  { title: 'Rotating',          componentName: 'RotatingLoader',         Component: RotatingLoader,         category: 'advanced', description: 'Dual counter-rotating rings',                   tags: ['rotating', 'rings', 'dual'] },
+];
+
+const CATEGORY_META: Record<LoaderCategory, { label: string; color: string }> = {
+  basic:    { label: 'Basic Loaders',       color: 'hsl(var(--primary))' },
+  split:    { label: 'Split & Transform',   color: 'hsl(38 92% 50%)' },
+  advanced: { label: 'Advanced',            color: 'hsl(142 71% 45%)' },
+};
+
+// ─── Shared utils ─────────────────────────────────────────────────────────────
+
+const CopyBtn = memo(({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
   const copy = useCallback(async () => {
-    try { await navigator.clipboard.writeText(text); }
-    catch { const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try { await navigator.clipboard.writeText(text); } catch {
+      const el = document.createElement('textarea'); el.value = text;
+      document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    }
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
   }, [text]);
   return (
-    <button onClick={copy} className={`p-1.5 rounded-md transition-all text-muted-foreground hover:text-foreground hover:bg-muted ${className}`} aria-label="Copy">
+    <button onClick={copy} className="shrink-0 p-1.5 rounded-md transition-all text-muted-foreground hover:text-foreground hover:bg-muted" aria-label="Copy">
       {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
     </button>
   );
 });
-CopyButton.displayName = 'CopyButton';
+CopyBtn.displayName = 'CopyBtn';
 
-// ─── Top navigation ───────────────────────────────────────────────────────────
+const CodeRow = memo(({ code }: { code: string }) => (
+  <div className="flex items-center gap-2 bg-[hsl(var(--code-bg))] border border-[hsl(var(--code-border))] rounded-lg px-3.5 py-2.5 group">
+    <code className="text-xs font-mono text-[hsl(var(--code-text))] flex-1 min-w-0 truncate">{code}</code>
+    <CopyBtn text={code} />
+  </div>
+));
+CodeRow.displayName = 'CodeRow';
 
-interface TopNavProps { toggle: () => void; isDark: boolean; }
+// ─── Top Header ───────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { href: '#install', label: 'Install' },
-  { href: '#usage',   label: 'Usage' },
-  { href: '#props',   label: 'Props' },
-  { href: '#tailwind',label: 'Tailwind' },
-  { href: '#components', label: 'Components' },
+interface HeaderProps { toggle: () => void; isDark: boolean; onMenuClick: () => void; }
+
+const TopHeader = memo(({ toggle, isDark, onMenuClick }: HeaderProps) => (
+  <header className="fixed top-0 left-0 right-0 z-40 h-14 border-b border-border bg-background/95 backdrop-blur-sm flex items-center px-4 gap-3">
+    <button onClick={onMenuClick} className="md:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" aria-label="Toggle menu">
+      <Menu className="w-5 h-5" />
+    </button>
+    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+      <div className="w-6 h-6 shrink-0 rounded-full bg-[hsl(var(--primary)/0.15)] border border-[hsl(var(--primary)/0.3)] flex items-center justify-center">
+        <span className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
+      </div>
+      <span className="font-bold font-mono text-sm text-foreground truncate">react-loader-animate</span>
+      <span className="hidden sm:inline-block shrink-0 text-xs font-mono bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-2 py-0.5 rounded-full">
+        v{PKG_VERSION}
+      </span>
+    </div>
+    <nav className="flex items-center gap-1">
+      <a href="https://www.npmjs.com/package/react-loader-animate" target="_blank" rel="noopener noreferrer"
+         className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1.5 rounded-md hover:bg-muted">
+        <Package className="w-3.5 h-3.5" /> npm
+      </a>
+      <a href="https://github.com/danhnhdeveloper308/react-loader-animate" target="_blank" rel="noopener noreferrer"
+         className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1.5 rounded-md hover:bg-muted">
+        <Github className="w-3.5 h-3.5" /> GitHub
+      </a>
+      <button onClick={toggle} className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" aria-label="Toggle theme">
+        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      </button>
+    </nav>
+  </header>
+));
+TopHeader.displayName = 'TopHeader';
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+
+const DOCS_NAV = [
+  { id: 'intro',    label: 'Introduction' },
+  { id: 'install',  label: 'Installation' },
+  { id: 'usage',    label: 'Usage' },
+  { id: 'props',    label: 'Props Reference' },
+  { id: 'tailwind', label: 'Tailwind Setup' },
 ];
 
-const TopNav = memo(({ toggle, isDark }: TopNavProps) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
+interface SidebarProps {
+  open: boolean;
+  search: string;
+  onSearch: (v: string) => void;
+  selected: string | null;
+  activeSection: string;
+  onSelectLoader: (name: string) => void;
+  onSelectSection: (id: string) => void;
+}
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+const Sidebar = memo(({ open, search, onSearch, selected, activeSection, onSelectLoader, onSelectSection }: SidebarProps) => {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const toggle = useCallback((key: string) => setCollapsed(p => ({ ...p, [key]: !p[key] })), []);
 
-  useEffect(() => {
-    const sections = NAV_LINKS.map(l => document.getElementById(l.href.slice(1))).filter(Boolean) as HTMLElement[];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(e => { if (e.isIntersecting) setActiveSection(`#${e.target.id}`); });
-      },
-      { rootMargin: '-20% 0px -70% 0px' }
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return null;
+    return LOADER_REGISTRY.filter(l =>
+      l.componentName.toLowerCase().includes(q) ||
+      l.title.toLowerCase().includes(q) ||
+      l.tags?.some(t => t.includes(q))
     );
-    sections.forEach(s => observer.observe(s));
-    return () => observer.disconnect();
-  }, []);
+  }, [search]);
+
+  const categories: LoaderCategory[] = ['basic', 'split', 'advanced'];
 
   return (
-    <header className={`sticky top-0 z-50 border-b transition-all duration-200 ${scrolled ? 'border-border bg-background/90 backdrop-blur-xl shadow-sm' : 'border-transparent bg-background/60 backdrop-blur-md'}`}>
-      <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-        {/* Logo */}
-        <a href="#" className="flex items-center gap-2.5 shrink-0">
-          <AtomLoader size="sm" />
-          <span className="font-bold text-foreground font-mono text-sm hidden sm:block">react-loader-animate</span>
-          <span className="font-bold text-foreground font-mono text-sm sm:hidden">rla</span>
-          <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.25)]">
-            v{PKG_VERSION}
-          </span>
-        </a>
-
-        {/* Nav links */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {NAV_LINKS.map(({ href, label }) => (
-            <a
-              key={href}
-              href={href}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
-                activeSection === href
-                  ? 'text-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)] font-medium'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-
-        {/* Right actions */}
-        <div className="flex items-center gap-2">
-          <a
-            href="https://github.com/danhnhdeveloper308/react-loader-animate"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-[hsl(var(--primary)/0.5)] hover:text-foreground transition-all"
-          >
-            <Github className="w-3.5 h-3.5" />
-            <span>GitHub</span>
-          </a>
-          <a
-            href="https://www.npmjs.com/package/react-loader-animate"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-[hsl(var(--primary)/0.5)] hover:text-foreground transition-all"
-          >
-            <Package className="w-3.5 h-3.5" />
-            <span>npm</span>
-          </a>
-          <button
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all border border-border"
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-});
-TopNav.displayName = 'TopNav';
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-
-const HERO_DEMOS = [
-  { node: <SpinLoader size="lg" variant="primary" />,     name: 'SpinLoader' },
-  { node: <GradientSpinner size="lg" variant="accent" />, name: 'GradientSpinner' },
-  { node: <OrbitLoader size="lg" variant="success" />,    name: 'OrbitLoader' },
-  { node: <AtomLoader size="lg" variant="warning" />,     name: 'AtomLoader' },
-  { node: <InfinityLoader size="lg" variant="primary" />, name: 'InfinityLoader' },
-];
-
-const STATS = [
-  { value: '41+', label: 'Components' },
-  { value: 'TS',  label: 'TypeScript' },
-  { value: '0',   label: 'Runtime deps' },
-  { value: 'MIT', label: 'License' },
-];
-
-const INSTALL_CMD = 'npm install react-loader-animate';
-
-const HeroSection = memo(() => {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback(async () => {
-    try { await navigator.clipboard.writeText(INSTALL_CMD); } catch {}
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
-
-  return (
-    <section className="relative overflow-hidden">
-      {/* Gradient blobs */}
-      <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[hsl(var(--primary)/0.08)] blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-[hsl(260_84%_60%/0.06)] blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-xs font-medium mb-6 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-          41+ animation components · TypeScript · Zero deps
-        </div>
-
-        {/* Title */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-foreground mb-4 tracking-tight leading-none">
-          react-loader-animate
-        </h1>
-        <p className="text-base sm:text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
-          Beautiful, performant React loading animations built with Tailwind CSS.
-          Tree-shakeable, TypeScript-first, zero runtime dependencies.
-        </p>
-
-        {/* Install command */}
-        <div className="inline-flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card max-w-sm mx-auto mb-12 w-full sm:w-auto">
-          <code className="text-sm font-mono text-foreground flex-1 text-left">{INSTALL_CMD}</code>
-          <button onClick={copy} aria-label="Copy install command" className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {/* Loader showcase */}
-        <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12 mb-14">
-          {HERO_DEMOS.map(({ node, name }) => (
-            <div key={name} className="flex flex-col items-center gap-3 group">
-              <div className="p-4 rounded-2xl bg-card border border-border group-hover:border-[hsl(var(--primary)/0.4)] group-hover:shadow-glow transition-all duration-300">
-                {node}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono hidden sm:block">{name}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div className="inline-grid grid-cols-4 gap-px rounded-2xl border border-border bg-border overflow-hidden">
-          {STATS.map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center px-5 py-4 bg-card">
-              <span className="text-xl font-bold text-foreground font-mono">{value}</span>
-              <span className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">{label}</span>
-            </div>
-          ))}
+    <aside className={`
+      fixed md:sticky top-14 left-0 z-30
+      flex flex-col w-64 shrink-0
+      h-[calc(100vh-3.5rem)]
+      bg-background border-r border-border
+      transition-transform duration-200 ease-in-out
+      ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+    `}>
+      {/* Search */}
+      <div className="p-3 border-b border-border shrink-0">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => onSearch(e.target.value)}
+            placeholder="Search loaders…"
+            className="w-full pl-8 pr-7 py-1.5 rounded-md border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] transition-all"
+          />
+          {search && (
+            <button onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Bottom separator */}
-      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-    </section>
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        {filtered ? (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-2 mb-2">
+              {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+            </p>
+            {filtered.map(entry => (
+              <button key={entry.componentName} onClick={() => onSelectLoader(entry.componentName)}
+                className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors block ${
+                  selected === entry.componentName
+                    ? 'bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {entry.componentName}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Getting Started */}
+            <div className="mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-2 pb-1.5">
+                Getting Started
+              </p>
+              {DOCS_NAV.map(sec => (
+                <button key={sec.id} onClick={() => onSelectSection(sec.id)}
+                  className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors block ${
+                    activeSection === sec.id && !selected
+                      ? 'bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] font-medium'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {sec.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Component groups */}
+            {categories.map(cat => {
+              const items = LOADER_REGISTRY.filter(l => l.category === cat);
+              const isCollapsed = collapsed[cat];
+              const meta = CATEGORY_META[cat];
+              return (
+                <div key={cat} className="mb-2">
+                  <button
+                    onClick={() => toggle(cat)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: meta.color }} />
+                      {meta.label}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full">{items.length}</span>
+                      {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </span>
+                  </button>
+                  {!isCollapsed && items.map(entry => (
+                    <button key={entry.componentName} onClick={() => onSelectLoader(entry.componentName)}
+                      className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors block ${
+                        selected === entry.componentName
+                          ? 'bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))] font-medium'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {entry.componentName}
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+          </>
+        )}
+      </nav>
+
+      {/* Footer */}
+      <div className="px-4 py-2.5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+        <span>52 components · MIT</span>
+      </div>
+    </aside>
   );
 });
-HeroSection.displayName = 'HeroSection';
+Sidebar.displayName = 'Sidebar';
 
-// ─── Install ──────────────────────────────────────────────────────────────────
+// ─── Loader Detail View ───────────────────────────────────────────────────────
 
-type PM = 'npm' | 'yarn' | 'pnpm' | 'bun';
-const PM_COMMANDS: Record<PM, string> = {
-  npm:  'npm install react-loader-animate',
-  yarn: 'yarn add react-loader-animate',
-  pnpm: 'pnpm add react-loader-animate',
-  bun:  'bun add react-loader-animate',
-};
+const PREVIEW_SIZES: Array<{ key: LoaderProps['size']; label: string }> = [
+  { key: 'sm', label: 'sm' },
+  { key: 'md', label: 'md' },
+  { key: 'lg', label: 'lg' },
+];
 
-const InstallSection = memo(() => {
-  const [pm, setPm] = useState<PM>('npm');
+const PREVIEW_VARIANTS: Array<{ key: LoaderProps['variant']; label: string }> = [
+  { key: 'primary', label: 'primary' },
+  { key: 'accent',  label: 'accent'  },
+  { key: 'success', label: 'success' },
+  { key: 'warning', label: 'warning' },
+];
+
+const COMMON_PROPS = [
+  { prop: 'size',              type: '"sm" | "md" | "lg"',                                  def: '"md"',     desc: 'Controls the display size' },
+  { prop: 'variant',           type: '"primary" | "accent" | "success" | "warning"',         def: '"primary"', desc: 'Theme colour variant' },
+  { prop: 'color',             type: 'string',                                              def: '—',        desc: 'CSS colour overrides variant' },
+  { prop: 'animationDuration', type: 'number',                                              def: '1',        desc: 'Duration in seconds' },
+  { prop: 'visible',           type: 'boolean',                                             def: 'true',     desc: 'Show/hide without unmounting' },
+  { prop: 'ariaLabel',         type: 'string',                                              def: '"loading"', desc: 'Accessible label' },
+  { prop: 'wrapperClass',      type: 'string',                                              def: '—',        desc: 'Extra class on wrapper div' },
+  { prop: 'wrapperStyle',      type: 'React.CSSProperties',                                def: '—',        desc: 'Inline style on wrapper div' },
+];
+
+const LoaderDetail = memo(({ entry }: { entry: LoaderEntry }) => {
+  const { Component, componentName, title, description, category } = entry;
+  const [activeVariant, setActiveVariant] = useState<LoaderProps['variant']>('primary');
+  const meta = CATEGORY_META[category];
+
+  const importCode = `import { ${componentName} } from 'react-loader-animate';`;
+  const basicCode  = `<${componentName} size="md" variant="primary" />`;
+  const customCode = `<${componentName} color="#6366f1" size="lg" animationDuration={0.8} />`;
+
   return (
-    <section id="install" className="container mx-auto px-4 sm:px-6 py-20">
-      <SectionHeader badge="01" title="Installation" description="Add the package with your preferred package manager." />
-      <div className="max-w-4xl mx-auto">
-        {/* PM tabs */}
-        <div className="flex gap-1 p-1 rounded-xl border border-border bg-muted/40 mb-4 w-fit">
-          {(Object.keys(PM_COMMANDS) as PM[]).map(p => (
-            <button
-              key={p}
-              onClick={() => setPm(p)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium font-mono transition-all duration-150 ${
-                pm === p ? 'bg-card text-foreground shadow-sm border border-border' : 'text-muted-foreground hover:text-foreground'
+    <div className="max-w-3xl mx-auto px-6 py-10">
+      {/* Breadcrumb */}
+      <nav className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5 flex-wrap">
+        <span>Components</span>
+        <ChevronRight className="w-3 h-3" />
+        <span className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: meta.color }} />
+          {meta.label}
+        </span>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground font-medium">{componentName}</span>
+      </nav>
+
+      {/* Title */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-1">{title}</h1>
+        <p className="text-muted-foreground mb-3">{description}</p>
+        <code className="inline-block text-xs font-mono bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-2.5 py-1 rounded-full">
+          {componentName}
+        </code>
+      </div>
+
+      {/* Live Preview */}
+      <section className="mb-10">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Live Preview</h2>
+
+        {/* Variant tabs */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {PREVIEW_VARIANTS.map(v => (
+            <button key={v.key} onClick={() => setActiveVariant(v.key)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                activeVariant === v.key
+                  ? 'border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
-              {p}
+              {v.label}
             </button>
           ))}
         </div>
-        <CodeBlock code={PM_COMMANDS[pm]} />
-        <p className="text-sm text-muted-foreground mt-4">
-          Requires <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">react ≥ 17</code> and{' '}
-          <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">tailwindcss ≥ 3</code> as peer dependencies.
-        </p>
-      </div>
-    </section>
-  );
-});
-InstallSection.displayName = 'InstallSection';
 
-// ─── Usage ────────────────────────────────────────────────────────────────────
+        {/* Sizes — CSS-variable override keeps loaders from re-rendering/restarting */}
+        <div
+          className="grid grid-cols-3 gap-4"
+          style={activeVariant !== 'primary'
+            ? ({ '--primary': `var(--${activeVariant})` } as React.CSSProperties)
+            : undefined
+          }
+        >
+          {PREVIEW_SIZES.map(({ key, label }) => (
+            <div key={key} className="flex flex-col items-center gap-3">
+              <div className="w-full h-28 flex items-center justify-center bg-muted/40 rounded-xl border border-border/50">
+                <Component size={key} variant="primary" />
+              </div>
+              <span className="text-xs font-mono text-muted-foreground">{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-const USAGE_STEPS = [
-  {
-    step: '1',
-    title: 'Import the CSS (or use the Tailwind preset)',
-    code: `import 'react-loader-animate/dist/index.css';`,
-  },
-  {
-    step: '2',
-    title: 'Import a component',
-    code: `import { SpinLoader } from 'react-loader-animate';`,
-  },
-  {
-    step: '3',
-    title: 'Use it in your component',
-    code: `export default function App() {
-  return (
-    <div>
-      <SpinLoader />
-      <SpinLoader size="lg" variant="accent" />
+      {/* Code Snippets */}
+      <section className="mb-10">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Code</h2>
+        <div className="space-y-2">
+          <div>
+            <p className="text-[11px] text-muted-foreground mb-1.5 pl-1">Import</p>
+            <CodeRow code={importCode} />
+          </div>
+          <div>
+            <p className="text-[11px] text-muted-foreground mb-1.5 pl-1">Basic usage</p>
+            <CodeRow code={basicCode} />
+          </div>
+          <div>
+            <p className="text-[11px] text-muted-foreground mb-1.5 pl-1">Custom colour</p>
+            <CodeRow code={customCode} />
+          </div>
+        </div>
+      </section>
+
+      {/* Props */}
+      <section>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Props</h2>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground text-xs">Prop</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground text-xs">Type</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground text-xs">Default</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground text-xs">Description</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {COMMON_PROPS.map(row => (
+                  <tr key={row.prop} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-2.5 font-mono text-xs text-[hsl(var(--primary))]">{row.prop}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{row.type}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{row.def}</td>
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">{row.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   );
-}`,
-  },
-];
+});
+LoaderDetail.displayName = 'LoaderDetail';
 
-const UsageSection = memo(() => (
-  <section id="usage" className="container mx-auto px-4 sm:px-6 py-20 border-t border-border">
-    <SectionHeader badge="02" title="Quick Start" description="Up and running in under a minute." />
-    <div className="max-w-4xl mx-auto space-y-6">
-      {USAGE_STEPS.map(({ step, title, code }) => (
-        <div key={step} className="flex gap-4">
-          <div className="shrink-0 w-7 h-7 rounded-full border-2 border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.08)] flex items-center justify-center mt-0.5">
-            <span className="text-xs font-bold text-[hsl(var(--primary))]">{step}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground mb-2">{title}</p>
-            <CodeBlock code={code} />
-          </div>
+// ─── Docs Content Sections ────────────────────────────────────────────────────
+
+const IntroSection = memo(() => (
+  <div className="max-w-3xl mx-auto px-6 py-10">
+    <div className="mb-8">
+      <div className="inline-flex items-center gap-2 text-xs font-mono bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-3 py-1.5 rounded-full mb-5">
+        <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
+        v{PKG_VERSION} — 52 components
+      </div>
+      <h1 className="text-4xl font-bold text-foreground mb-3 leading-tight">react-loader-animate</h1>
+      <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
+        A comprehensive collection of 52+ beautiful, performance-optimized React loading animation components.
+        TypeScript-first, Tailwind CSS powered, zero runtime dependencies.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <a href="https://www.npmjs.com/package/react-loader-animate" target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-medium hover:opacity-90 transition-opacity">
+          <Package className="w-4 h-4" /> npm package
+        </a>
+        <a href="https://github.com/danhnhdeveloper308/react-loader-animate" target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card text-foreground text-sm font-medium hover:bg-muted transition-colors">
+          <Github className="w-4 h-4" /> GitHub
+        </a>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+      {[
+        { label: '52+ Components', desc: 'Ready to use' },
+        { label: 'TypeScript',     desc: 'Full type safety' },
+        { label: 'Tree-shakeable', desc: 'Import only what you need' },
+        { label: 'Zero deps',      desc: 'No runtime bloat' },
+      ].map(f => (
+        <div key={f.label} className="rounded-xl border border-border bg-card p-4 text-center">
+          <p className="font-semibold text-foreground text-sm">{f.label}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{f.desc}</p>
         </div>
       ))}
     </div>
-  </section>
+
+    <h2 className="text-base font-bold text-foreground mb-4">Quick Start</h2>
+    <div className="space-y-2">
+      <CodeRow code="npm install react-loader-animate" />
+      <CodeRow code={`import { SpinLoader } from 'react-loader-animate';`} />
+      <CodeRow code={`<SpinLoader size="md" variant="primary" />`} />
+    </div>
+
+    <div className="mt-8 p-4 rounded-xl bg-[hsl(var(--primary)/0.06)] border border-[hsl(var(--primary)/0.15)]">
+      <p className="text-sm font-semibold text-foreground mb-1">👈 Browse components in the sidebar</p>
+      <p className="text-xs text-muted-foreground">
+        Click any loader name to see a live preview across all sizes and variants, plus ready-to-copy code snippets.
+      </p>
+    </div>
+  </div>
+));
+IntroSection.displayName = 'IntroSection';
+
+const InstallSection = memo(() => (
+  <div className="max-w-3xl mx-auto px-6 py-10">
+    <h1 className="text-3xl font-bold text-foreground mb-2">Installation</h1>
+    <p className="text-muted-foreground mb-8">Install with your preferred package manager.</p>
+    <div className="space-y-5">
+      {[
+        { label: 'npm',  code: 'npm install react-loader-animate' },
+        { label: 'pnpm', code: 'pnpm add react-loader-animate' },
+        { label: 'yarn', code: 'yarn add react-loader-animate' },
+        { label: 'bun',  code: 'bun add react-loader-animate' },
+      ].map(({ label, code }) => (
+        <div key={label}>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+          <CodeRow code={code} />
+        </div>
+      ))}
+      <div className="mt-4 p-4 rounded-xl bg-[hsl(var(--primary)/0.06)] border border-[hsl(var(--primary)/0.15)]">
+        <p className="text-sm font-semibold text-foreground mb-1">Peer Dependencies</p>
+        <p className="text-xs text-muted-foreground">
+          Requires <code className="font-mono">react ≥ 17</code> and <code className="font-mono">react-dom ≥ 17</code>
+        </p>
+      </div>
+    </div>
+  </div>
+));
+InstallSection.displayName = 'InstallSection';
+
+const UsageSection = memo(() => (
+  <div className="max-w-3xl mx-auto px-6 py-10">
+    <h1 className="text-3xl font-bold text-foreground mb-2">Usage</h1>
+    <p className="text-muted-foreground mb-8">Import and use any loader with a single line.</p>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">Basic</h2>
+        <CodeBlock code={`import { SpinLoader } from 'react-loader-animate';
+
+export default function App() {
+  return <SpinLoader size="md" variant="primary" />;
+}`} />
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">Custom Colour</h2>
+        <div className="space-y-2">
+          <CodeRow code={`<SpinLoader color="#6366f1" size="lg" />`} />
+          <CodeRow code={`<DotsLoader color="rgb(99,102,241)" animationDuration={0.8} />`} />
+        </div>
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">Conditional Visibility</h2>
+        <CodeRow code={`<SpinLoader visible={isLoading} />`} />
+        <p className="text-xs text-muted-foreground mt-2">
+          The <code className="font-mono">visible</code> prop hides the loader without unmounting — preventing layout shifts.
+        </p>
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">Import Multiple</h2>
+        <CodeBlock code={`import {
+  SpinLoader, DotsLoader, PulseLoader,
+  WaveLoader, RingLoader, BarLoader,
+} from 'react-loader-animate';`} />
+      </div>
+    </div>
+  </div>
 ));
 UsageSection.displayName = 'UsageSection';
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
-const PROPS_INTERFACE = `interface LoaderProps {
-  /** Visual size of the loader.  Default: 'md' */
-  size?:    'sm' | 'md' | 'lg';
-
-  /** Colour variant.  Default: 'primary' */
-  variant?: 'primary' | 'accent' | 'success' | 'warning';
-}`;
-
-const PROP_ROWS = [
-  { prop: 'size',    type: 'string', def: "'md'",      opts: "'sm' | 'md' | 'lg'" },
-  { prop: 'variant', type: 'string', def: "'primary'", opts: "'primary' | 'accent' | 'success' | 'warning'" },
-];
-
-const VARIANT_COLORS: Record<string, string> = {
-  primary: 'text-[hsl(var(--primary))]',
-  accent:  'text-orange-500',
-  success: 'text-green-600 dark:text-green-400',
-  warning: 'text-yellow-600 dark:text-yellow-400',
-};
-
 const PropsSection = memo(() => (
-  <section id="props" className="container mx-auto px-4 sm:px-6 py-20 border-t border-border">
-    <SectionHeader badge="03" title="Props Reference" description="Every loader accepts the same two optional props." />
-    <div className="max-w-4xl mx-auto space-y-6">
-      <CodeBlock code={PROPS_INTERFACE} />
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm">
+  <div className="max-w-3xl mx-auto px-6 py-10">
+    <h1 className="text-3xl font-bold text-foreground mb-2">Props Reference</h1>
+    <p className="text-muted-foreground mb-8">All components share a consistent set of props.</p>
+    <div className="rounded-xl border border-border overflow-hidden mb-6">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              {['Prop', 'Type', 'Default', 'Options'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
-              ))}
+            <tr className="border-b border-border bg-muted/40">
+              <th className="text-left px-4 py-3 font-semibold text-foreground text-xs">Prop</th>
+              <th className="text-left px-4 py-3 font-semibold text-foreground text-xs">Type</th>
+              <th className="text-left px-4 py-3 font-semibold text-foreground text-xs">Default</th>
+              <th className="text-left px-4 py-3 font-semibold text-foreground text-xs">Description</th>
             </tr>
           </thead>
-          <tbody>
-            {PROP_ROWS.map((row, i) => (
-              <tr key={row.prop} className={i % 2 !== 0 ? 'bg-muted/20' : 'bg-card'}>
-                <td className="px-4 py-3 font-mono text-[hsl(var(--primary))] font-medium">{row.prop}</td>
-                <td className="px-4 py-3 text-muted-foreground">{row.type}</td>
-                <td className="px-4 py-3 font-mono text-orange-500 dark:text-orange-400">{row.def}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.opts}</td>
+          <tbody className="divide-y divide-border">
+            {[
+              { prop: 'size',              type: '"sm" | "md" | "lg"',                             def: '"md"',      desc: 'Controls the display size' },
+              { prop: 'variant',           type: '"primary" | "accent" | "success" | "warning"',   def: '"primary"', desc: 'Theme colour variant' },
+              { prop: 'color',             type: 'string',                                         def: '—',         desc: 'CSS colour, overrides variant' },
+              { prop: 'animationDuration', type: 'number',                                         def: '1',         desc: 'Duration in seconds' },
+              { prop: 'visible',           type: 'boolean',                                        def: 'true',      desc: 'Show/hide without unmounting' },
+              { prop: 'ariaLabel',         type: 'string',                                         def: '"loading"', desc: 'Accessible label' },
+              { prop: 'wrapperClass',      type: 'string',                                         def: '—',         desc: 'Extra class on wrapper' },
+              { prop: 'wrapperStyle',      type: 'React.CSSProperties',                            def: '—',         desc: 'Inline style on wrapper' },
+            ].map(row => (
+              <tr key={row.prop} className="hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-3 font-mono text-xs text-[hsl(var(--primary))]">{row.prop}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.type}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.def}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">{row.desc}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
-      {/* Variant showcase */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Variant preview</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {(['primary', 'accent', 'success', 'warning'] as const).map(v => (
-            <div key={v} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
-              <SpinLoader size="md" variant={v} />
-              <span className={`text-xs font-mono font-medium ${VARIANT_COLORS[v]}`}>{v}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
-  </section>
+    <div className="p-4 rounded-xl bg-[hsl(var(--primary)/0.06)] border border-[hsl(var(--primary)/0.15)]">
+      <p className="text-sm font-semibold text-foreground mb-1">Advanced Props</p>
+      <p className="text-xs text-muted-foreground">
+        Some loaders (e.g. <code className="font-mono">ColorRingLoader</code>, <code className="font-mono">Grid3x3Loader</code>)
+        also accept <code className="font-mono">colors: string[]</code>, <code className="font-mono">strokeWidth: number</code>, and other component-specific props.
+      </p>
+    </div>
+  </div>
 ));
 PropsSection.displayName = 'PropsSection';
 
-// ─── Tailwind ─────────────────────────────────────────────────────────────────
-
-const TAILWIND_CONFIG = `// tailwind.config.ts
-import loaderPreset from 'react-loader-animate/tailwind.preset';
-import type { Config } from 'tailwindcss';
-
-export default {
-  presets: [loaderPreset],
-  content: [
-    './src/**/*.{ts,tsx}',
-    // Required so Tailwind sees all classes used inside the library
-    'node_modules/react-loader-animate/dist/**/*.{js,cjs}',
-  ],
-} satisfies Config;`;
-
-const TOKEN_OVERRIDE = `/* Override any token in your own :root */
-:root {
-  --primary: 220 100% 55%; /* blue */
-  --accent:  160 84% 39%;  /* teal */
-}`;
-
 const TailwindSection = memo(() => (
-  <section id="tailwind" className="container mx-auto px-4 sm:px-6 py-20 border-t border-border">
-    <SectionHeader badge="04" title="Tailwind CSS Preset" description="Skip the CSS import — use the preset for full tree-shaking support." />
-    <div className="max-w-4xl mx-auto space-y-5">
-      <CodeBlock code={TAILWIND_CONFIG} />
-      <div className="rounded-xl border border-border bg-[hsl(var(--primary)/0.05)] p-5 space-y-3">
-        <p className="text-sm font-semibold text-foreground">Customising colours</p>
-        <p className="text-sm text-muted-foreground">
-          The preset registers four CSS tokens. Override any of them in your own{' '}
-          <code className="font-mono text-xs bg-muted px-1 rounded">:root</code> to customise the palette:
+  <div className="max-w-3xl mx-auto px-6 py-10">
+    <h1 className="text-3xl font-bold text-foreground mb-2">Tailwind Setup</h1>
+    <p className="text-muted-foreground mb-8">
+      The library ships a Tailwind CSS preset with all required keyframes and utilities.
+    </p>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">1. Add the preset</h2>
+        <CodeBlock code={`// tailwind.config.js
+const { rlaPreset } = require('react-loader-animate/preset');
+
+module.exports = {
+  presets: [rlaPreset],
+  // ...rest of your config
+};`} />
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">2. Import CSS (alternative)</h2>
+        <p className="text-xs text-muted-foreground mb-2">If you are not using Tailwind, import the bundled CSS:</p>
+        <CodeRow code={`import 'react-loader-animate/dist/index.css';`} />
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-foreground mb-3">3. Define CSS variables</h2>
+        <p className="text-xs text-muted-foreground mb-2">Add these to your base styles for theme colours to work:</p>
+        <CodeBlock code={`:root {
+  --primary: 260 84% 55%;
+  --accent:  12 76% 61%;
+  --success: 142 71% 45%;
+  --warning: 38 92% 50%;
+}`} />
+      </div>
+      <div className="p-4 rounded-xl bg-[hsl(var(--warning)/0.08)] border border-[hsl(var(--warning)/0.2)]">
+        <p className="text-sm font-semibold text-foreground mb-1">⚠️ Note</p>
+        <p className="text-xs text-muted-foreground">
+          CSS variable values are HSL channels without the <code className="font-mono">hsl()</code> wrapper,
+          used as <code className="font-mono">hsl(var(--primary))</code> in components.
         </p>
-        <CodeBlock code={TOKEN_OVERRIDE} />
-        <div className="flex flex-wrap gap-2 pt-1">
-          {['--primary', '--accent', '--success', '--warning'].map(t => (
-            <code key={t} className="font-mono text-xs bg-muted border border-border px-2 py-1 rounded-lg text-muted-foreground">{t}</code>
-          ))}
-        </div>
       </div>
     </div>
-  </section>
+  </div>
 ));
 TailwindSection.displayName = 'TailwindSection';
 
-// ─── All loaders data ─────────────────────────────────────────────────────────
-
-const ALL_LOADERS = [
-  { title: 'Spin Loader',      componentName: 'SpinLoader',        node: <SpinLoader /> },
-  { title: 'Dots Loader',      componentName: 'DotsLoader',        node: <DotsLoader /> },
-  { title: 'Pulse Loader',     componentName: 'PulseLoader',       node: <PulseLoader /> },
-  { title: 'Wave Loader',      componentName: 'WaveLoader',        node: <WaveLoader /> },
-  { title: 'Square Morph',     componentName: 'SquareLoader',      node: <SquareLoader /> },
-  { title: 'Flip Loader',      componentName: 'FlipLoader',        node: <FlipLoader /> },
-  { title: 'Gradient Spinner', componentName: 'GradientSpinner',   node: <GradientSpinner /> },
-  { title: 'Orbit Loader',     componentName: 'OrbitLoader',       node: <OrbitLoader /> },
-  { title: 'Triangle Loader',  componentName: 'TriangleLoader',    node: <TriangleLoader /> },
-  { title: 'Diamond Loader',   componentName: 'DiamondLoader',     node: <DiamondLoader /> },
-  { title: 'Cross Loader',     componentName: 'CrossLoader',       node: <CrossLoader /> },
-  { title: 'Butterfly Loader', componentName: 'ButterflyLoader',   node: <ButterflyLoader /> },
-  { title: 'Hexagon Loader',   componentName: 'HexagonLoader',     node: <HexagonLoader /> },
-  { title: 'Segment Loader',   componentName: 'SegmentLoader',     node: <SegmentLoader /> },
-  { title: 'Arrow Loader',     componentName: 'ArrowLoader',       node: <ArrowLoader /> },
-  { title: 'Grid Loader',      componentName: 'GridLoader',        node: <GridLoader /> },
-  { title: 'Star Loader',      componentName: 'StarLoader',        node: <StarLoader /> },
-  { title: 'Pentagon Loader',  componentName: 'PentagonLoader',    node: <PentagonLoader /> },
-  { title: 'Chevron Loader',   componentName: 'ChevronLoader',     node: <ChevronLoader /> },
-  { title: 'Spiral Loader',    componentName: 'SpiralLoader',      node: <SpiralLoader /> },
-  { title: 'Ring Loader',      componentName: 'RingLoader',        node: <RingLoader /> },
-  { title: 'Clock Loader',     componentName: 'ClockLoader',       node: <ClockLoader /> },
-  { title: 'Bar Loader',       componentName: 'BarLoader',         node: <BarLoader /> },
-  { title: 'Bounce Ball',      componentName: 'BounceBallLoader',  node: <BounceBallLoader /> },
-  { title: 'DNA Loader',       componentName: 'DNALoader',         node: <DNALoader /> },
-  { title: 'Heartbeat',        componentName: 'HeartbeatLoader',   node: <HeartbeatLoader /> },
-  { title: 'Cube Loader',      componentName: 'CubeLoader',        node: <CubeLoader /> },
-  { title: 'Infinity Loader',  componentName: 'InfinityLoader',    node: <InfinityLoader /> },
-  { title: 'Gear Loader',      componentName: 'GearLoader',        node: <GearLoader /> },
-  { title: 'Pyramid Loader',   componentName: 'PyramidLoader',     node: <PyramidLoader /> },
-  { title: 'Hourglass',        componentName: 'HourglassLoader',   node: <HourglassLoader /> },
-  { title: 'Radar',            componentName: 'RadarLoader',       node: <RadarLoader /> },
-  { title: 'Typing Dots',      componentName: 'TypingDotsLoader',  node: <TypingDotsLoader /> },
-  { title: 'Pendulum',         componentName: 'PendulumLoader',    node: <PendulumLoader /> },
-  { title: 'Atom',             componentName: 'AtomLoader',        node: <AtomLoader /> },
-];
-
-const SPLIT_LOADERS = [
-  { title: 'Corner Squares', componentName: 'CornerSquaresLoader', node: <CornerSquaresLoader /> },
-  { title: 'Square Split',   componentName: 'SquareSplitLoader',   node: <SquareSplitLoader /> },
-  { title: 'Triangle Split', componentName: 'TriangleSplitLoader', node: <TriangleSplitLoader /> },
-  { title: 'Circle Split',   componentName: 'CircleSplitLoader',   node: <CircleSplitLoader /> },
-  { title: 'Diamond Split',  componentName: 'DiamondSplitLoader',  node: <DiamondSplitLoader /> },
-  { title: 'Hexagon Split',  componentName: 'HexagonSplitLoader',  node: <HexagonSplitLoader /> },
-];
-
-const NEW_LOADERS = [
-  { title: 'Color Ring',          componentName: 'ColorRingLoader',         node: <ColorRingLoader /> },
-  { title: 'Circular Progress',   componentName: 'CircularProgressLoader',  node: <CircularProgressLoader /> },
-  { title: 'Tail Spin',           componentName: 'TailSpinLoader',          node: <TailSpinLoader /> },
-  { title: 'Ball Triangle',       componentName: 'BallTriangleLoader',      node: <BallTriangleLoader /> },
-  { title: 'Hash Loader',         componentName: 'HashLoader',              node: <HashLoader /> },
-  { title: 'Sync Loader',         componentName: 'SyncLoader',              node: <SyncLoader /> },
-  { title: 'Mutating Dots',       componentName: 'MutatingDotsLoader',      node: <MutatingDotsLoader /> },
-  { title: 'Three Dots Fade',     componentName: 'ThreeDotsFadeLoader',     node: <ThreeDotsFadeLoader /> },
-  { title: 'Grid 3×3',            componentName: 'Grid3x3Loader',           node: <Grid3x3Loader /> },
-  { title: 'Bars',                componentName: 'BarsLoader',              node: <BarsLoader /> },
-  { title: 'Rotating',            componentName: 'RotatingLoader',          node: <RotatingLoader /> },
-];
-
-const BULK_IMPORT = `import {
-  // Basic
-  SpinLoader, DotsLoader, PulseLoader, WaveLoader, GradientSpinner,
-  RingLoader, BarLoader, TypingDotsLoader, SyncLoader,
-  // Shapes
-  SquareLoader, TriangleLoader, DiamondLoader, CrossLoader,
-  HexagonLoader, PentagonLoader, StarLoader, ArrowLoader,
-  ChevronLoader, PyramidLoader, CubeLoader,
-  // Motion
-  FlipLoader, OrbitLoader, ButterflyLoader, SegmentLoader,
-  SpiralLoader, GridLoader, BounceBallLoader, ClockLoader,
-  DNALoader, HeartbeatLoader, InfinityLoader, GearLoader,
-  HourglassLoader, RadarLoader, PendulumLoader, AtomLoader,
-  // Advanced / Custom colour
-  ColorRingLoader, CircularProgressLoader, TailSpinLoader,
-  BallTriangleLoader, HashLoader, MutatingDotsLoader, ThreeDotsFadeLoader,
-  Grid3x3Loader, BarsLoader, RotatingLoader,
-  CornerSquaresLoader,
-  // Split & Transform
-  SquareSplitLoader, TriangleSplitLoader, CircleSplitLoader,
-  DiamondSplitLoader, HexagonSplitLoader,
-} from 'react-loader-animate';`;
-
-const ALL = [...ALL_LOADERS, ...SPLIT_LOADERS, ...NEW_LOADERS];
-
-const ComponentsSection = memo(() => {
-  const [query, setQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const filtered = query.trim()
-    ? ALL.filter(l =>
-        l.componentName.toLowerCase().includes(query.toLowerCase()) ||
-        l.title.toLowerCase().includes(query.toLowerCase())
-      )
-    : null;
-
-  return (
-    <section id="components" className="container mx-auto px-4 sm:px-6 py-20 border-t border-border">
-      <SectionHeader
-        badge="05"
-        title="All Components"
-        description={`41+ loaders — hover any card to copy the import and usage snippet.`}
-      />
-
-      {/* Search */}
-      <div className="relative max-w-sm mx-auto mb-8">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search components…"
-          className="w-full pl-9 pr-9 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:border-[hsl(var(--primary)/0.5)] transition-all"
-        />
-        {query && (
-          <button onClick={() => setQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      {filtered ? (
-        /* Search results */
-        filtered.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            No components matching <strong className="text-foreground">"{query}"</strong>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filtered.map(({ title, componentName, node }) => (
-              <LoaderCard key={componentName} title={title} componentName={componentName}>
-                {node as React.ReactElement}
-              </LoaderCard>
-            ))}
-          </div>
-        )
-      ) : (
-        /* Default view */
-        <>
-          <div className="max-w-4xl mx-auto mb-10">
-            <p className="text-sm font-semibold text-foreground mb-2">Import everything at once</p>
-            <CodeBlock code={BULK_IMPORT} />
-          </div>
-
-          <h3 className="text-base font-semibold text-foreground mb-5 flex items-center gap-2">
-            <span className="w-1.5 h-4 rounded-full bg-[hsl(var(--primary))]" />
-            Basic &amp; Shape Loaders
-            <span className="text-xs font-normal text-muted-foreground">({ALL_LOADERS.length})</span>
-          </h3>
-          <div className="grid grid-cols-1 gap-4">
-            {ALL_LOADERS.map(({ title, componentName, node }) => (
-              <LoaderCard key={componentName} title={title} componentName={componentName}>
-                {node as React.ReactElement}
-              </LoaderCard>
-            ))}
-          </div>
-
-          <LazySection className="mt-12">
-            <h3 className="text-base font-semibold text-foreground mb-5 flex items-center gap-2">
-              <span className="w-1.5 h-4 rounded-full bg-orange-500" />
-              Split &amp; Transform Loaders
-              <span className="text-xs font-normal text-muted-foreground">({SPLIT_LOADERS.length})</span>
-            </h3>
-            <div className="grid grid-cols-1 gap-4">
-              {SPLIT_LOADERS.map(({ title, componentName, node }) => (
-                <LoaderCard key={componentName} title={title} componentName={componentName}>
-                  {node as React.ReactElement}
-                </LoaderCard>
-              ))}
-            </div>
-          </LazySection>
-
-          <LazySection className="mt-12">
-            <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-4 rounded-full bg-green-500" />
-              New — Advanced &amp; Custom Colour
-              <span className="text-xs font-normal text-muted-foreground">({NEW_LOADERS.length})</span>
-            </h3>
-            <p className="text-sm text-muted-foreground mb-5 pl-3.5">
-              Support <code className="font-mono text-xs bg-muted px-1 rounded">color</code>,{' '}
-              <code className="font-mono text-xs bg-muted px-1 rounded">colors[]</code>,{' '}
-              <code className="font-mono text-xs bg-muted px-1 rounded">strokeWidth</code>,{' '}
-              <code className="font-mono text-xs bg-muted px-1 rounded">animationDuration</code>,{' '}
-              <code className="font-mono text-xs bg-muted px-1 rounded">visible</code>, and more.
-            </p>
-            <div className="grid grid-cols-1 gap-4">
-              {NEW_LOADERS.map(({ title, componentName, node }) => (
-                <LoaderCard key={componentName} title={title} componentName={componentName}>
-                  {node as React.ReactElement}
-                </LoaderCard>
-              ))}
-            </div>
-          </LazySection>
-        </>
-      )}
-    </section>
-  );
+const DocsSection = memo(({ id }: { id: string }) => {
+  switch (id) {
+    case 'install':  return <InstallSection />;
+    case 'usage':    return <UsageSection />;
+    case 'props':    return <PropsSection />;
+    case 'tailwind': return <TailwindSection />;
+    default:         return <IntroSection />;
+  }
 });
-ComponentsSection.displayName = 'ComponentsSection';
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-
-const Footer = memo(() => (
-  <footer className="border-t border-border mt-8">
-    <div className="container mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-        <AtomLoader size="sm" />
-        <span className="font-mono font-semibold text-foreground">react-loader-animate</span>
-        <span className="text-border">·</span>
-        <span>MIT License</span>
-        <span className="text-border">·</span>
-        <span>v{PKG_VERSION}</span>
-      </div>
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <a href="https://www.npmjs.com/package/react-loader-animate" target="_blank" rel="noopener noreferrer"
-           className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-          <Package className="w-3.5 h-3.5" /> npm ↗
-        </a>
-        <a href="https://github.com/danhnhdeveloper308/react-loader-animate" target="_blank" rel="noopener noreferrer"
-           className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-          <Github className="w-3.5 h-3.5" /> GitHub ↗
-        </a>
-      </div>
-    </div>
-  </footer>
-));
-Footer.displayName = 'Footer';
+DocsSection.displayName = 'DocsSection';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DocsPage() {
   const { toggle, isDark } = useTheme();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('intro');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  const selectedEntry = useMemo(
+    () => (selected ? LOADER_REGISTRY.find(l => l.componentName === selected) ?? null : null),
+    [selected]
+  );
+
+  const handleSelectLoader = useCallback((name: string) => {
+    setSelected(name);
+    setActiveSection('');
+    setSidebarOpen(false);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleSelectSection = useCallback((id: string) => {
+    setActiveSection(id);
+    setSelected(null);
+    setSidebarOpen(false);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav toggle={toggle} isDark={isDark} />
-      <HeroSection />
-      <LazySection><InstallSection /></LazySection>
-      <LazySection><UsageSection /></LazySection>
-      <LazySection><PropsSection /></LazySection>
-      <LazySection><TailwindSection /></LazySection>
-      <LazySection><ComponentsSection /></LazySection>
-      <Footer />
+    <div className="h-screen overflow-hidden bg-background">
+      <TopHeader toggle={toggle} isDark={isDark} onMenuClick={() => setSidebarOpen(o => !o)} />
+
+      <div className="flex h-full pt-14">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/50 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <Sidebar
+          open={sidebarOpen}
+          search={search}
+          onSearch={setSearch}
+          selected={selected}
+          activeSection={activeSection}
+          onSelectLoader={handleSelectLoader}
+          onSelectSection={handleSelectSection}
+        />
+
+        {/* Main content */}
+        <main ref={mainRef} className="flex-1 overflow-y-auto">
+          {selectedEntry ? (
+            <LoaderDetail entry={selectedEntry} />
+          ) : (
+            <DocsSection id={activeSection} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }
