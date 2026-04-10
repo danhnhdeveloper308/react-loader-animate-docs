@@ -12,5 +12,5 @@ export default defineConfig({
   },
   // Set base to the GitHub repo name for GitHub Pages
   // Change this to '/' if using a custom domain
-  base: '/react-loader-animate/',
+  base: '/react-loader-animate-docs/',
 });
