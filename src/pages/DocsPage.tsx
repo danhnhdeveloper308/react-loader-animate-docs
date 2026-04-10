@@ -12,6 +12,20 @@ import {
   ColorRingLoader, CircularProgressLoader, TailSpinLoader,
   BallTriangleLoader, HashLoader, SyncLoader, MutatingDotsLoader, ThreeDotsFadeLoader,
   Grid3x3Loader, BarsLoader, RotatingLoader,
+  // v4 Ring/Circle
+  RippleLoader, DoubleRingLoader, ConcentricLoader, DashLoader, CircleChaseLoader, TrailSpinLoader,
+  // v4 Dots/Particles
+  BouncingDotsLoader, FlipDotsLoader, CircleDotsLoader, ChasingDotsLoader, GlowDotsLoader, ParticleLoader,
+  // v4 Bars/Lines
+  SoundBarsLoader, HorizontalBarsLoader, LineLoader, ZigzagBallLoader, ProgressBarLoader,
+  // v4 Geometric
+  CubeGridLoader, PacmanLoader, TargetLoader, WiFiLoader, MorphLoader, SquaresTrailLoader,
+  // v4 Creative
+  HeartLoader, FingerprintLoader, GalaxyLoader, BlobLoader, TunnelLoader, MatrixLoader, WindmillLoader,
+  // v5 Circle
+  SolarSystemLoader, CometLoader, GlowRingLoader, ChaseRingLoader, BreathingRingLoader,
+  // v5 Grid
+  GridWaveLoader, GridBounceLoader, GridRainLoader, GridPulseLoader, GridSnakeLoader,
 } from 'react-loader-animate';
 import type { LoaderProps } from 'react-loader-animate';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -21,7 +35,7 @@ import {
   ChevronDown, ChevronRight,
 } from 'lucide-react';
 
-const PKG_VERSION = '1.1.1';
+const PKG_VERSION = '1.2.0';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +109,53 @@ const LOADER_REGISTRY: LoaderEntry[] = [
   { title: 'Grid 3×3',          componentName: 'Grid3x3Loader',          Component: Grid3x3Loader,          category: 'advanced', description: '3×3 grid wave animation',                       tags: ['grid', 'wave'] },
   { title: 'Bars',              componentName: 'BarsLoader',             Component: BarsLoader,             category: 'advanced', description: 'Vertical bars scaling animation',               tags: ['bars', 'scale'] },
   { title: 'Rotating',          componentName: 'RotatingLoader',         Component: RotatingLoader,         category: 'advanced', description: 'Dual counter-rotating rings',                   tags: ['rotating', 'rings', 'dual'] },
+  // ── v4 Ring/Circle ────────────────────────────────────────────────────────
+  { title: 'Ripple',            componentName: 'RippleLoader',           Component: RippleLoader,           category: 'advanced', description: 'Expanding ripple ring waves',                   tags: ['ripple', 'ring', 'wave'] },
+  { title: 'Double Ring',       componentName: 'DoubleRingLoader',       Component: DoubleRingLoader,       category: 'advanced', description: 'Two rings spinning in opposite directions',      tags: ['ring', 'double', 'counter'] },
+  { title: 'Concentric',        componentName: 'ConcentricLoader',       Component: ConcentricLoader,       category: 'advanced', description: 'Concentric rings pulsing with delay',           tags: ['ring', 'concentric', 'pulse'] },
+  { title: 'Dash',              componentName: 'DashLoader',             Component: DashLoader,             category: 'advanced', description: 'Elastic dash arc on a circle track',           tags: ['dash', 'arc', 'elastic'] },
+  { title: 'Circle Chase',      componentName: 'CircleChaseLoader',      Component: CircleChaseLoader,      category: 'advanced', description: 'Trailing dots orbiting with opacity fade',      tags: ['chase', 'orbit', 'trail'] },
+  { title: 'Trail Spin',        componentName: 'TrailSpinLoader',        Component: TrailSpinLoader,        category: 'advanced', description: 'Gradient trail spinner with leading dot',       tags: ['trail', 'gradient', 'spin'] },
+  // ── v4 Dots/Particles ─────────────────────────────────────────────────────
+  { title: 'Bouncing Dots',     componentName: 'BouncingDotsLoader',     Component: BouncingDotsLoader,     category: 'basic',    description: 'Three dots scale-bouncing in sequence',         tags: ['dots', 'bounce', 'scale'] },
+  { title: 'Flip Dots',         componentName: 'FlipDotsLoader',         Component: FlipDotsLoader,         category: 'advanced', description: '3×3 grid of squares flipping on X axis',        tags: ['flip', 'grid', '3d'] },
+  { title: 'Circle Dots',       componentName: 'CircleDotsLoader',       Component: CircleDotsLoader,       category: 'advanced', description: 'Dots arranged in circle pulsing sequentially',  tags: ['dots', 'circle', 'pulse'] },
+  { title: 'Chasing Dots',      componentName: 'ChasingDotsLoader',      Component: ChasingDotsLoader,      category: 'advanced', description: 'Trailing dots chasing around a ring',          tags: ['dots', 'chase', 'orbit'] },
+  { title: 'Glow Dots',         componentName: 'GlowDotsLoader',         Component: GlowDotsLoader,         category: 'advanced', description: 'Three dots with glowing pulse effect',          tags: ['dots', 'glow', 'pulse'] },
+  { title: 'Particle',          componentName: 'ParticleLoader',         Component: ParticleLoader,         category: 'advanced', description: 'Particles bursting from center repeatedly',     tags: ['particle', 'burst', 'scatter'] },
+  // ── v4 Bars/Lines ─────────────────────────────────────────────────────────
+  { title: 'Sound Bars',        componentName: 'SoundBarsLoader',        Component: SoundBarsLoader,        category: 'basic',    description: 'Audio equalizer bar animation',                 tags: ['sound', 'equalizer', 'bars'] },
+  { title: 'Horizontal Bars',   componentName: 'HorizontalBarsLoader',   Component: HorizontalBarsLoader,   category: 'basic',    description: 'Stacked horizontal bars growing/shrinking',     tags: ['bars', 'horizontal', 'progress'] },
+  { title: 'Line',              componentName: 'LineLoader',             Component: LineLoader,             category: 'basic',    description: 'Indeterminate line sliding across a track',     tags: ['line', 'progress', 'slide'] },
+  { title: 'Zigzag Ball',       componentName: 'ZigzagBallLoader',       Component: ZigzagBallLoader,       category: 'basic',    description: 'Ball bouncing along a zigzag path',             tags: ['zigzag', 'ball', 'bounce'] },
+  { title: 'Progress Bar',      componentName: 'ProgressBarLoader',      Component: ProgressBarLoader,      category: 'basic',    description: 'Animated indeterminate progress bar',           tags: ['progress', 'bar', 'linear'] },
+  // ── v4 Geometric ──────────────────────────────────────────────────────────
+  { title: 'Cube Grid',         componentName: 'CubeGridLoader',         Component: CubeGridLoader,         category: 'advanced', description: '3×3 cube grid with wave scale animation',       tags: ['cube', 'grid', '3d', 'wave'] },
+  { title: 'Pacman',            componentName: 'PacmanLoader',           Component: PacmanLoader,           category: 'advanced', description: 'Pacman-inspired jaw animation with dots',       tags: ['pacman', 'game', 'dots'] },
+  { title: 'Target',            componentName: 'TargetLoader',           Component: TargetLoader,           category: 'advanced', description: 'Bullseye target with pulsing rings',            tags: ['target', 'bullseye', 'rings'] },
+  { title: 'WiFi',              componentName: 'WiFiLoader',             Component: WiFiLoader,             category: 'basic',    description: 'WiFi signal arcs appearing sequentially',       tags: ['wifi', 'signal', 'arcs'] },
+  { title: 'Morph',             componentName: 'MorphLoader',            Component: MorphLoader,            category: 'advanced', description: 'Shape morphing between circle and square',      tags: ['morph', 'shape', 'transform'] },
+  { title: 'Squares Trail',     componentName: 'SquaresTrailLoader',     Component: SquaresTrailLoader,     category: 'advanced', description: 'Trailing squares fading like a comet tail',     tags: ['squares', 'trail', 'comet'] },
+  // ── v4 Creative ───────────────────────────────────────────────────────────
+  { title: 'Heart',             componentName: 'HeartLoader',            Component: HeartLoader,            category: 'advanced', description: 'Beating heart with pulse animation',            tags: ['heart', 'beat', 'pulse'] },
+  { title: 'Fingerprint',       componentName: 'FingerprintLoader',      Component: FingerprintLoader,      category: 'advanced', description: 'Spiral fingerprint rings animating in',         tags: ['fingerprint', 'spiral', 'rings'] },
+  { title: 'Galaxy',            componentName: 'GalaxyLoader',           Component: GalaxyLoader,           category: 'advanced', description: 'Spiral galaxy of stars rotating',              tags: ['galaxy', 'spiral', 'stars'] },
+  { title: 'Blob',              componentName: 'BlobLoader',             Component: BlobLoader,             category: 'advanced', description: 'Organic morphing blob animation',              tags: ['blob', 'morph', 'organic'] },
+  { title: 'Tunnel',            componentName: 'TunnelLoader',           Component: TunnelLoader,           category: 'advanced', description: 'Nested rectangles giving a tunnel effect',      tags: ['tunnel', 'rect', 'depth'] },
+  { title: 'Matrix',            componentName: 'MatrixLoader',           Component: MatrixLoader,           category: 'advanced', description: 'Matrix-style falling block columns',           tags: ['matrix', 'columns', 'fall'] },
+  { title: 'Windmill',          componentName: 'WindmillLoader',         Component: WindmillLoader,         category: 'advanced', description: 'Spinning windmill blades with opacity trail',   tags: ['windmill', 'spin', 'blades'] },
+  // v5 Circle
+  { title: 'Solar System',      componentName: 'SolarSystemLoader',      Component: SolarSystemLoader,      category: 'advanced', description: 'Nucleus with 3 orbiting planets at different speeds', tags: ['solar', 'orbit', 'planet', 'circle'] },
+  { title: 'Comet',             componentName: 'CometLoader',            Component: CometLoader,            category: 'advanced', description: 'Rotating comet arc with bright leading dot',    tags: ['comet', 'arc', 'circle', 'spin'] },
+  { title: 'Glow Ring',         componentName: 'GlowRingLoader',         Component: GlowRingLoader,         category: 'advanced', description: 'Pulsing ring with neon glow and spinning arc',   tags: ['glow', 'ring', 'neon', 'pulse'] },
+  { title: 'Chase Ring',        componentName: 'ChaseRingLoader',        Component: ChaseRingLoader,        category: 'advanced', description: 'Two dots chasing each other around a ring',      tags: ['chase', 'ring', 'circle', 'dots'] },
+  { title: 'Breathing Ring',    componentName: 'BreathingRingLoader',    Component: BreathingRingLoader,    category: 'advanced', description: 'Concentric rings expanding and fading like breath', tags: ['breathing', 'ring', 'pulse', 'circle'] },
+  // v5 Grid
+  { title: 'Grid Wave',         componentName: 'GridWaveLoader',         Component: GridWaveLoader,         category: 'basic',    description: '4×4 squares scaling in a diagonal wave pattern', tags: ['grid', 'wave', 'scale', 'diagonal'] },
+  { title: 'Grid Bounce',       componentName: 'GridBounceLoader',       Component: GridBounceLoader,       category: 'basic',    description: '3×3 dots bouncing outward from the center',      tags: ['grid', 'bounce', 'dots', 'center'] },
+  { title: 'Grid Rain',         componentName: 'GridRainLoader',         Component: GridRainLoader,         category: 'basic',    description: 'Dots falling column by column like raindrops',   tags: ['grid', 'rain', 'fall', 'dots'] },
+  { title: 'Grid Pulse',        componentName: 'GridPulseLoader',        Component: GridPulseLoader,        category: 'basic',    description: '3×3 grid pulsing outward from the center cell',  tags: ['grid', 'pulse', 'center', 'wave'] },
+  { title: 'Grid Snake',        componentName: 'GridSnakeLoader',        Component: GridSnakeLoader,        category: 'advanced', description: 'A lit dot traversing a 3×3 grid in snake order', tags: ['grid', 'snake', 'trail', 'sequential'] },
 ];
 
 const CATEGORY_META: Record<LoaderCategory, { label: string; color: string }> = {
@@ -308,7 +369,7 @@ const Sidebar = memo(({ open, search, onSearch, selected, activeSection, onSelec
       {/* Footer */}
       <div className="px-4 py-2.5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground shrink-0">
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-        <span>52 components · MIT</span>
+        <span>92+ components · MIT</span>
       </div>
     </aside>
   );
@@ -470,11 +531,11 @@ const IntroSection = memo(() => (
     <div className="mb-8">
       <div className="inline-flex items-center gap-2 text-xs font-mono bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-3 py-1.5 rounded-full mb-5">
         <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-        v{PKG_VERSION} — 52 components
+        v{PKG_VERSION} — 92+ components
       </div>
       <h1 className="text-4xl font-bold text-foreground mb-3 leading-tight">react-loader-animate</h1>
       <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
-        A comprehensive collection of 52+ beautiful, performance-optimized React loading animation components.
+        A comprehensive collection of 92+ beautiful, performance-optimized React loading animation components.
         TypeScript-first, Tailwind CSS powered, zero runtime dependencies.
       </p>
       <div className="flex flex-wrap gap-3">
@@ -491,7 +552,7 @@ const IntroSection = memo(() => (
 
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
       {[
-        { label: '52+ Components', desc: 'Ready to use' },
+        { label: '92+ Components', desc: 'Ready to use' },
         { label: 'TypeScript',     desc: 'Full type safety' },
         { label: 'Tree-shakeable', desc: 'Import only what you need' },
         { label: 'Zero deps',      desc: 'No runtime bloat' },
