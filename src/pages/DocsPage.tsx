@@ -26,6 +26,26 @@ import {
   SolarSystemLoader, CometLoader, GlowRingLoader, ChaseRingLoader, BreathingRingLoader,
   // v5 Grid
   GridWaveLoader, GridBounceLoader, GridRainLoader, GridPulseLoader, GridSnakeLoader,
+  // v6 Spinners
+  NeonSpinLoader, ArcSpinLoader, GyroscopeLoader, ElasticRingLoader, VortexLoader,
+  HalfSpinLoader, PulsatingSquareLoader, SphereDotsLoader, OctaLoader, CylinderLoader,
+  // v6 Dots/Bounce
+  StepDotsLoader, NeonDotsLoader, QuadDotsLoader, OrbitalDotsLoader, MirrorDotsLoader,
+  BubbleLoader, WaterDropLoader, SatelliteLoader, MoleculeLoader, OscillateLoader,
+  // v6 Bars/Lines
+  PianoKeysLoader, LevelMeterLoader, CountdownBarLoader, StaircaseLoader, FilmStripLoader,
+  ScanLoader, BatteryLoader, DialLoader, CompassLoader, GlitchLoader,
+  // v6 Geometric
+  HexGridLoader, CrosshairLoader, TesseractLoader, KaleidoLoader, IsometricLoader,
+  GearTrainLoader, CubeRotateLoader, SparkleLoader, EclipseLoader, CrystalLoader,
+  // v6 Creative/Nature
+  RocketLoader, SnowflakeLoader, FireLoader, LeafLoader, CircuitLoader,
+  LiquidFillLoader, PlasmaLoader, NeoTrailLoader, ThunderLoader, BarrelLoader,
+  // v7 — 20 new unique loaders
+  HelixLoader, RippleSquareLoader, TypewriterLoader, SonarLoader, NewtonLoader,
+  SignalLoader, CounterLoader, CubeUnfoldLoader, SineWaveLoader, ChaseLoader,
+  SandTimer, ShimmerLoader, GradientArcLoader, TriangleRingLoader, DoubleHelixLoader,
+  PulseRingLoader, BouncingLineLoader, OrbLoader, FoldingLoader, ConstellationLoader,
 } from 'react-loader-animate';
 import type { LoaderProps } from 'react-loader-animate';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -35,7 +55,7 @@ import {
   ChevronDown, ChevronRight,
 } from 'lucide-react';
 
-const PKG_VERSION = '1.2.0';
+const PKG_VERSION = '1.3.0';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -156,6 +176,88 @@ const LOADER_REGISTRY: LoaderEntry[] = [
   { title: 'Grid Rain',         componentName: 'GridRainLoader',         Component: GridRainLoader,         category: 'basic',    description: 'Dots falling column by column like raindrops',   tags: ['grid', 'rain', 'fall', 'dots'] },
   { title: 'Grid Pulse',        componentName: 'GridPulseLoader',        Component: GridPulseLoader,        category: 'basic',    description: '3×3 grid pulsing outward from the center cell',  tags: ['grid', 'pulse', 'center', 'wave'] },
   { title: 'Grid Snake',        componentName: 'GridSnakeLoader',        Component: GridSnakeLoader,        category: 'advanced', description: 'A lit dot traversing a 3×3 grid in snake order', tags: ['grid', 'snake', 'trail', 'sequential'] },
+
+  // v6 Spinners
+  { title: 'Neon Spin',         componentName: 'NeonSpinLoader',         Component: NeonSpinLoader,         category: 'advanced', description: 'Glowing neon arc rotating with tail fade',          tags: ['neon', 'spin', 'glow', 'arc'] },
+  { title: 'Arc Spin',          componentName: 'ArcSpinLoader',          Component: ArcSpinLoader,          category: 'basic',    description: 'Dual arcs counter-rotating in opposite directions', tags: ['arc', 'spin', 'dual', 'ring'] },
+  { title: 'Gyroscope',         componentName: 'GyroscopeLoader',        Component: GyroscopeLoader,        category: 'advanced', description: 'Three rings rotating on different axes like a gyroscope', tags: ['gyroscope', 'ring', '3d', 'rotation'] },
+  { title: 'Elastic Ring',      componentName: 'ElasticRingLoader',      Component: ElasticRingLoader,      category: 'advanced', description: 'A ring that stretches and contracts elastically',    tags: ['elastic', 'ring', 'stretch', 'morph'] },
+  { title: 'Vortex',            componentName: 'VortexLoader',           Component: VortexLoader,           category: 'advanced', description: 'Particles spiraling inward into a vortex',           tags: ['vortex', 'spiral', 'particles', 'spin'] },
+  { title: 'Half Spin',         componentName: 'HalfSpinLoader',         Component: HalfSpinLoader,         category: 'basic',    description: 'Two semicircles alternating spin directions',        tags: ['spin', 'half', 'semicircle', 'alternating'] },
+  { title: 'Pulsating Square',  componentName: 'PulsatingSquareLoader',  Component: PulsatingSquareLoader,  category: 'basic',    description: 'Nested squares scaling in concentric pulse',         tags: ['square', 'pulse', 'nested', 'scale'] },
+  { title: 'Sphere Dots',       componentName: 'SphereDotsLoader',       Component: SphereDotsLoader,       category: 'advanced', description: 'Dots orbiting on a 3D sphere surface',              tags: ['sphere', 'dots', '3d', 'orbit'] },
+  { title: 'Octa',              componentName: 'OctaLoader',             Component: OctaLoader,             category: 'basic',    description: 'Octagon shape morphing and rotating',               tags: ['octagon', 'morph', 'rotate', 'geometric'] },
+  { title: 'Cylinder',          componentName: 'CylinderLoader',         Component: CylinderLoader,         category: 'advanced', description: '3D cylinder rotating and perspective-shifting',      tags: ['cylinder', '3d', 'rotate', 'perspective'] },
+
+  // v6 Dots/Bounce
+  { title: 'Step Dots',         componentName: 'StepDotsLoader',         Component: StepDotsLoader,         category: 'basic',    description: 'Dots stepping up and down in a staircase pattern',  tags: ['dots', 'step', 'bounce', 'sequential'] },
+  { title: 'Neon Dots',         componentName: 'NeonDotsLoader',         Component: NeonDotsLoader,         category: 'advanced', description: 'Glowing neon dots pulsing with color shifts',        tags: ['neon', 'dots', 'glow', 'pulse'] },
+  { title: 'Quad Dots',         componentName: 'QuadDotsLoader',         Component: QuadDotsLoader,         category: 'basic',    description: 'Four dots rotating in a square formation',           tags: ['quad', 'dots', 'rotate', 'square'] },
+  { title: 'Orbital Dots',      componentName: 'OrbitalDotsLoader',      Component: OrbitalDotsLoader,      category: 'advanced', description: 'Multiple dots orbiting at different radii',          tags: ['orbital', 'dots', 'orbit', 'radii'] },
+  { title: 'Mirror Dots',       componentName: 'MirrorDotsLoader',       Component: MirrorDotsLoader,       category: 'basic',    description: 'Mirrored dots bouncing toward and away from center', tags: ['mirror', 'dots', 'bounce', 'symmetric'] },
+  { title: 'Bubble',            componentName: 'BubbleLoader',           Component: BubbleLoader,           category: 'basic',    description: 'Floating bubbles rising with random drift',          tags: ['bubble', 'float', 'rise', 'random'] },
+  { title: 'Water Drop',        componentName: 'WaterDropLoader',        Component: WaterDropLoader,        category: 'advanced', description: 'Water droplet falling and creating ripple impact',   tags: ['water', 'drop', 'ripple', 'impact'] },
+  { title: 'Satellite',         componentName: 'SatelliteLoader',        Component: SatelliteLoader,        category: 'advanced', description: 'Small dot orbiting a central planet-like sphere',    tags: ['satellite', 'orbit', 'planet', 'space'] },
+  { title: 'Molecule',          componentName: 'MoleculeLoader',         Component: MoleculeLoader,         category: 'advanced', description: 'Atoms connected by bonds rotating like a molecule',  tags: ['molecule', 'atom', 'bond', 'rotate'] },
+  { title: 'Oscillate',         componentName: 'OscillateLoader',        Component: OscillateLoader,        category: 'basic',    description: 'Dots oscillating with phase-shifted sine wave motion', tags: ['oscillate', 'sine', 'wave', 'phase'] },
+
+  // v6 Bars/Lines
+  { title: 'Piano Keys',        componentName: 'PianoKeysLoader',        Component: PianoKeysLoader,        category: 'basic',    description: 'Vertical bars animated like pressing piano keys',    tags: ['piano', 'keys', 'bars', 'music'] },
+  { title: 'Level Meter',       componentName: 'LevelMeterLoader',       Component: LevelMeterLoader,       category: 'basic',    description: 'Audio level meter bars fluctuating dynamically',     tags: ['level', 'meter', 'audio', 'bars'] },
+  { title: 'Countdown Bar',     componentName: 'CountdownBarLoader',     Component: CountdownBarLoader,     category: 'basic',    description: 'Progress bar depleting from full to empty in loop',  tags: ['countdown', 'bar', 'progress', 'deplete'] },
+  { title: 'Staircase',         componentName: 'StaircaseLoader',        Component: StaircaseLoader,        category: 'basic',    description: 'Bars growing in staircase ascending/descending pattern', tags: ['staircase', 'bars', 'ascending', 'steps'] },
+  { title: 'Film Strip',        componentName: 'FilmStripLoader',        Component: FilmStripLoader,        category: 'advanced', description: 'Film strip frames scrolling horizontally',            tags: ['film', 'strip', 'scroll', 'frames'] },
+  { title: 'Scan',              componentName: 'ScanLoader',             Component: ScanLoader,             category: 'basic',    description: 'Horizontal scan beam sweeping top to bottom',        tags: ['scan', 'beam', 'sweep', 'horizontal'] },
+  { title: 'Battery',           componentName: 'BatteryLoader',          Component: BatteryLoader,          category: 'advanced', description: 'Battery icon filling up repeatedly to simulate charging', tags: ['battery', 'charge', 'fill', 'progress'] },
+  { title: 'Dial',              componentName: 'DialLoader',             Component: DialLoader,             category: 'advanced', description: 'Rotating dial pointer sweeping around a circle',     tags: ['dial', 'pointer', 'sweep', 'rotate'] },
+  { title: 'Compass',           componentName: 'CompassLoader',          Component: CompassLoader,          category: 'advanced', description: 'Compass needle spinning and settling',               tags: ['compass', 'needle', 'spin', 'settle'] },
+  { title: 'Glitch',            componentName: 'GlitchLoader',           Component: GlitchLoader,           category: 'advanced', description: 'Glitching rectangle with offset color channels',     tags: ['glitch', 'offset', 'channels', 'rgb'] },
+
+  // v6 Geometric
+  { title: 'Hex Grid',          componentName: 'HexGridLoader',          Component: HexGridLoader,          category: 'advanced', description: 'Hexagonal grid cells lighting up in sequence',       tags: ['hex', 'grid', 'hexagon', 'sequential'] },
+  { title: 'Crosshair',         componentName: 'CrosshairLoader',        Component: CrosshairLoader,        category: 'basic',    description: 'Crosshair lines sweeping and pulsing',               tags: ['crosshair', 'lines', 'sweep', 'pulse'] },
+  { title: 'Tesseract',         componentName: 'TesseractLoader',        Component: TesseractLoader,        category: 'advanced', description: '4D hypercube (tesseract) wireframe rotating',        tags: ['tesseract', 'hypercube', '4d', 'wireframe'] },
+  { title: 'Kaleido',           componentName: 'KaleidoLoader',          Component: KaleidoLoader,          category: 'advanced', description: 'Kaleidoscope pattern rotating with color shifts',    tags: ['kaleido', 'kaleidoscope', 'pattern', 'rotate'] },
+  { title: 'Isometric',         componentName: 'IsometricLoader',        Component: IsometricLoader,        category: 'advanced', description: '3D isometric cube rendered with SVG polygons',       tags: ['isometric', '3d', 'cube', 'polygon'] },
+  { title: 'Gear Train',        componentName: 'GearTrainLoader',        Component: GearTrainLoader,        category: 'advanced', description: 'Two interlocked gears counter-rotating in mesh',     tags: ['gear', 'train', 'mesh', 'counter-rotate'] },
+  { title: 'Cube Rotate',       componentName: 'CubeRotateLoader',       Component: CubeRotateLoader,       category: 'advanced', description: 'CSS 3D perspective cube rotating on all axes',       tags: ['cube', '3d', 'perspective', 'rotate'] },
+  { title: 'Sparkle',           componentName: 'SparkleLoader',          Component: SparkleLoader,          category: 'advanced', description: 'Star sparkles appearing and fading around a center', tags: ['sparkle', 'star', 'fade', 'twinkle'] },
+  { title: 'Eclipse',           componentName: 'EclipseLoader',          Component: EclipseLoader,          category: 'advanced', description: 'Two circles creating an eclipse effect as they overlap', tags: ['eclipse', 'circles', 'overlap', 'shadow'] },
+  { title: 'Crystal',           componentName: 'CrystalLoader',          Component: CrystalLoader,          category: 'advanced', description: 'Multi-faceted crystal gem rotating and refracting',  tags: ['crystal', 'gem', 'refract', 'rotate'] },
+
+  // v6 Creative/Nature
+  { title: 'Rocket',            componentName: 'RocketLoader',           Component: RocketLoader,           category: 'advanced', description: 'SVG rocket with animated exhaust flame bobbing',     tags: ['rocket', 'space', 'flame', 'svg'] },
+  { title: 'Snowflake',         componentName: 'SnowflakeLoader',        Component: SnowflakeLoader,        category: 'advanced', description: 'Six-arm snowflake rotating with crystalline arms',   tags: ['snowflake', 'snow', 'crystal', 'rotate'] },
+  { title: 'Fire',              componentName: 'FireLoader',             Component: FireLoader,             category: 'advanced', description: 'Flickering flame with layered orange/yellow colors', tags: ['fire', 'flame', 'flicker', 'orange'] },
+  { title: 'Leaf',              componentName: 'LeafLoader',             Component: LeafLoader,             category: 'advanced', description: 'Leaf swaying in the breeze with organic motion',     tags: ['leaf', 'nature', 'sway', 'organic'] },
+  { title: 'Circuit',           componentName: 'CircuitLoader',          Component: CircuitLoader,          category: 'advanced', description: 'Circuit board trace animating along PCB paths',       tags: ['circuit', 'pcb', 'trace', 'tech'] },
+  { title: 'Liquid Fill',       componentName: 'LiquidFillLoader',       Component: LiquidFillLoader,       category: 'advanced', description: 'Circular container filling with liquid wave effect',  tags: ['liquid', 'fill', 'wave', 'circle'] },
+  { title: 'Plasma',            componentName: 'PlasmaLoader',           Component: PlasmaLoader,           category: 'advanced', description: 'Morphing plasma blob with layered glow effect',      tags: ['plasma', 'blob', 'morph', 'glow'] },
+  { title: 'Neo Trail',         componentName: 'NeoTrailLoader',         Component: NeoTrailLoader,         category: 'advanced', description: 'Neon gradient arc spinning with glowing lead dot',   tags: ['neon', 'trail', 'glow', 'gradient'] },
+  { title: 'Thunder',           componentName: 'ThunderLoader',          Component: ThunderLoader,          category: 'advanced', description: 'Lightning bolt flashing with electric glow effect',  tags: ['thunder', 'lightning', 'flash', 'electric'] },
+  { title: 'Barrel',            componentName: 'BarrelLoader',           Component: BarrelLoader,           category: 'basic',    description: 'Rolling barrel traveling across the container',      tags: ['barrel', 'roll', 'travel', 'retro'] },
+
+  // ── v7 — 20 new unique loaders ────────────────────────────────────────────────
+  { title: 'Helix',             componentName: 'HelixLoader',            Component: HelixLoader,            category: 'advanced', description: 'Double-strand helix with animated strand flow',       tags: ['helix', 'dna', 'strand', 'wave'] },
+  { title: 'Ripple Square',     componentName: 'RippleSquareLoader',     Component: RippleSquareLoader,     category: 'basic',    description: 'Concentric square rings expanding outward',           tags: ['ripple', 'square', 'expand', 'rings'] },
+  { title: 'Typewriter',        componentName: 'TypewriterLoader',       Component: TypewriterLoader,       category: 'basic',    description: 'Three dots appearing in typewriter-style sequence',   tags: ['typewriter', 'dots', 'typing', 'sequence'] },
+  { title: 'Sonar',             componentName: 'SonarLoader',            Component: SonarLoader,            category: 'basic',    description: 'Sonar ping rings expanding from center point',        tags: ['sonar', 'ping', 'rings', 'expand'] },
+  { title: "Newton's Cradle",   componentName: 'NewtonLoader',           Component: NewtonLoader,           category: 'advanced', description: "Newton's cradle pendulum swinging left and right",    tags: ['newton', 'cradle', 'pendulum', 'physics'] },
+  { title: 'Signal Bars',       componentName: 'SignalLoader',           Component: SignalLoader,           category: 'basic',    description: 'Mobile signal strength bars lighting up in sequence',  tags: ['signal', 'bars', 'mobile', 'strength'] },
+  { title: 'Counter',           componentName: 'CounterLoader',          Component: CounterLoader,          category: 'advanced', description: 'Circular arc with live percentage counter inside',     tags: ['counter', 'percentage', 'arc', 'progress'] },
+  { title: 'Cube Unfold',       componentName: 'CubeUnfoldLoader',       Component: CubeUnfoldLoader,       category: 'advanced', description: '3D cube rotating through X and Y axes continuously',  tags: ['cube', '3d', 'unfold', 'rotate'] },
+  { title: 'Sine Wave',         componentName: 'SineWaveLoader',         Component: SineWaveLoader,         category: 'basic',    description: 'Row of dots flowing in a smooth sine wave pattern',   tags: ['sine', 'wave', 'dots', 'flow'] },
+  { title: 'Chase',             componentName: 'ChaseLoader',            Component: ChaseLoader,            category: 'basic',    description: 'Chomper chasing dots across a horizontal track',      tags: ['chase', 'chomper', 'dots', 'humor'] },
+  { title: 'Sand Timer',        componentName: 'SandTimer',              Component: SandTimer,              category: 'advanced', description: 'Hourglass flipping with sand-fall animation inside',   tags: ['sand', 'timer', 'hourglass', 'flip'] },
+  { title: 'Shimmer',           componentName: 'ShimmerLoader',          Component: ShimmerLoader,          category: 'basic',    description: 'Skeleton-style shimmer bars for content placeholders', tags: ['shimmer', 'skeleton', 'placeholder', 'bars'] },
+  { title: 'Gradient Arc',      componentName: 'GradientArcLoader',      Component: GradientArcLoader,      category: 'basic',    description: 'Spinner arc with a gradient fade from transparent',   tags: ['gradient', 'arc', 'spin', 'fade'] },
+  { title: 'Triangle Ring',     componentName: 'TriangleRingLoader',     Component: TriangleRingLoader,     category: 'advanced', description: 'Two triangle outlines counter-rotating around center', tags: ['triangle', 'ring', 'counter-rotate', 'geometric'] },
+  { title: 'Double Helix',      componentName: 'DoubleHelixLoader',      Component: DoubleHelixLoader,      category: 'advanced', description: 'DNA double helix dots orbiting on crossing paths',    tags: ['double', 'helix', 'dna', 'orbit'] },
+  { title: 'Pulse Ring',        componentName: 'PulseRingLoader',        Component: PulseRingLoader,        category: 'basic',    description: 'Multiple ring pulses expanding from a center dot',    tags: ['pulse', 'ring', 'expand', 'minimal'] },
+  { title: 'Bouncing Line',     componentName: 'BouncingLineLoader',     Component: BouncingLineLoader,     category: 'basic',    description: 'A curved SVG path bouncing up and down fluidly',      tags: ['line', 'bounce', 'svg', 'wave'] },
+  { title: 'Orb',               componentName: 'OrbLoader',              Component: OrbLoader,              category: 'advanced', description: 'Glowing gradient orb with pulsing ring halos',        tags: ['orb', 'glow', 'gradient', 'pulse'] },
+  { title: 'Folding Squares',   componentName: 'FoldingLoader',          Component: FoldingLoader,          category: 'advanced', description: 'Four squares folding in 3D perspective sequence',      tags: ['folding', 'squares', '3d', 'perspective'] },
+  { title: 'Constellation',     componentName: 'ConstellationLoader',    Component: ConstellationLoader,    category: 'advanced', description: 'Star points twinkling and connected by constellation lines', tags: ['constellation', 'stars', 'twinkle', 'space'] },
 ];
 
 const CATEGORY_META: Record<LoaderCategory, { label: string; color: string }> = {
@@ -369,7 +471,7 @@ const Sidebar = memo(({ open, search, onSearch, selected, activeSection, onSelec
       {/* Footer */}
       <div className="px-4 py-2.5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground shrink-0">
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-        <span>92+ components · MIT</span>
+        <span>162+ components · MIT</span>
       </div>
     </aside>
   );
@@ -531,11 +633,11 @@ const IntroSection = memo(() => (
     <div className="mb-8">
       <div className="inline-flex items-center gap-2 text-xs font-mono bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-3 py-1.5 rounded-full mb-5">
         <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-        v{PKG_VERSION} — 92+ components
+        v{PKG_VERSION} — 162+ components
       </div>
       <h1 className="text-4xl font-bold text-foreground mb-3 leading-tight">react-loader-animate</h1>
       <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
-        A comprehensive collection of 92+ beautiful, performance-optimized React loading animation components.
+        A comprehensive collection of 162+ beautiful, performance-optimized React loading animation components.
         TypeScript-first, Tailwind CSS powered, zero runtime dependencies.
       </p>
       <div className="flex flex-wrap gap-3">
@@ -552,7 +654,7 @@ const IntroSection = memo(() => (
 
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
       {[
-        { label: '92+ Components', desc: 'Ready to use' },
+        { label: '162+ Components', desc: 'Ready to use' },
         { label: 'TypeScript',     desc: 'Full type safety' },
         { label: 'Tree-shakeable', desc: 'Import only what you need' },
         { label: 'Zero deps',      desc: 'No runtime bloat' },

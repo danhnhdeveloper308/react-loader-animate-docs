@@ -1,1 +1,1 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/components/CodeBlock.tsx","./src/components/LazySection.tsx","./src/components/LoaderCard.tsx","./src/hooks/useTheme.ts","./src/pages/DocsPage.tsx"],"version":"5.9.3"}
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/CodeBlock.tsx","./src/components/LazySection.tsx","./src/components/LoaderCard.tsx","./src/hooks/useTheme.ts","./src/pages/DocsPage.tsx"],"errors":true,"version":"5.9.3"}
