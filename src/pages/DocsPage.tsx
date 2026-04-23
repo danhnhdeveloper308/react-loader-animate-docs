@@ -55,7 +55,7 @@ import {
   ChevronDown, ChevronRight,
 } from 'lucide-react';
 
-const PKG_VERSION = '1.3.0';
+const PKG_VERSION = '1.4.0'; // auto-updated by build script
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

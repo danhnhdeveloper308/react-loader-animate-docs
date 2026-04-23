@@ -21,8 +21,8 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
       react-loader-animate:
-        specifier: ^1.3.0
-        version: 1.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^1.4.0
+        version: 1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.1
@@ -1019,8 +1019,8 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
-  react-loader-animate@1.3.0:
-    resolution: {integrity: sha512-+zC8hFYnNMbnLAngA/XH9EnIF8Pvgg9ka1ne2fD3h8Ah0Ba91IsJTkDqkUcAKfTMRrInz9yad6EShjNaQ6YJjQ==}
+  react-loader-animate@1.4.0:
+    resolution: {integrity: sha512-5hmwlo/kJvhSe0peuH1pdMN9XJpe4GDh55GLQBGnN0ORKOC3fMynzrkB0x7I3n91hyYacc0z2vsV2XGKGr+9wQ==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -1973,7 +1973,7 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
-  react-loader-animate@1.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-loader-animate@1.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
