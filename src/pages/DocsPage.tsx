@@ -46,6 +46,15 @@ import {
   SignalLoader, CounterLoader, CubeUnfoldLoader, SineWaveLoader, ChaseLoader,
   SandTimer, ShimmerLoader, GradientArcLoader, TriangleRingLoader, DoubleHelixLoader,
   PulseRingLoader, BouncingLineLoader, OrbLoader, FoldingLoader, ConstellationLoader,
+  // v8 — Rotating circles
+  DoubleDotOrbitLoader, ArcBallLoader, NestedRingsLoader, SpinTrailLoader, CometRingLoader,
+  TwinSpinLoader, EllipseOrbitLoader, PetalSpinLoader, RotatingDashesLoader, SpinPulseLoader,
+  // v8 — Split / Merge
+  SplitCircleLoader, MergeBallsLoader, BurstLoader, SplitSquareLoader, AtomSplitLoader,
+  FissionLoader, ExpandContractLoader, SplitRingLoader, PuzzleLoader, CollideLoader,
+  // v8 — Creative rotators
+  YingYangLoader, DonutSpinLoader, PinwheelLoader, SpinSquaresLoader, FlowerSpinLoader,
+  WheelSpinLoader, SpiralSpinLoader, TripleMergeLoader,
 } from 'react-loader-animate';
 import type { LoaderProps } from 'react-loader-animate';
 import { CodeBlock } from '@/components/CodeBlock';
@@ -55,7 +64,7 @@ import {
   ChevronDown, ChevronRight,
 } from 'lucide-react';
 
-const PKG_VERSION = '1.4.0'; // auto-updated by build script
+const PKG_VERSION = '1.5.0'; // auto-updated by build script
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -258,6 +267,37 @@ const LOADER_REGISTRY: LoaderEntry[] = [
   { title: 'Orb',               componentName: 'OrbLoader',              Component: OrbLoader,              category: 'advanced', description: 'Glowing gradient orb with pulsing ring halos',        tags: ['orb', 'glow', 'gradient', 'pulse'] },
   { title: 'Folding Squares',   componentName: 'FoldingLoader',          Component: FoldingLoader,          category: 'advanced', description: 'Four squares folding in 3D perspective sequence',      tags: ['folding', 'squares', '3d', 'perspective'] },
   { title: 'Constellation',     componentName: 'ConstellationLoader',    Component: ConstellationLoader,    category: 'advanced', description: 'Star points twinkling and connected by constellation lines', tags: ['constellation', 'stars', 'twinkle', 'space'] },
+  // v8 — Rotating circles
+  { title: 'Double Dot Orbit',  componentName: 'DoubleDotOrbitLoader',   Component: DoubleDotOrbitLoader,   category: 'basic',    description: 'Two dots orbiting each other on opposite sides of a ring',     tags: ['orbit', 'dots', 'circular', 'two'] },
+  { title: 'Arc Ball',          componentName: 'ArcBallLoader',          Component: ArcBallLoader,          category: 'basic',    description: 'A ball rolling along a dotted arc track continuously',          tags: ['arc', 'ball', 'roll', 'track'] },
+  { title: 'Nested Rings',      componentName: 'NestedRingsLoader',      Component: NestedRingsLoader,      category: 'basic',    description: 'Multiple concentric rings rotating at different speeds',         tags: ['nested', 'rings', 'concentric', 'rotate'] },
+  { title: 'Spin Trail',        componentName: 'SpinTrailLoader',        Component: SpinTrailLoader,        category: 'basic',    description: 'Dot leaving a fading trail as it orbits a circle',              tags: ['spin', 'trail', 'orbit', 'fade'] },
+  { title: 'Comet Ring',        componentName: 'CometRingLoader',        Component: CometRingLoader,        category: 'advanced', description: 'A comet head with glowing tail sweeping around a ring',          tags: ['comet', 'ring', 'glow', 'trail'] },
+  { title: 'Twin Spin',         componentName: 'TwinSpinLoader',         Component: TwinSpinLoader,         category: 'basic',    description: 'Two arcs counter-rotating creating an interleaved effect',       tags: ['twin', 'spin', 'counter-rotate', 'arc'] },
+  { title: 'Ellipse Orbit',     componentName: 'EllipseOrbitLoader',     Component: EllipseOrbitLoader,     category: 'advanced', description: 'Dot traversing a tilted 3D elliptical orbit path',               tags: ['ellipse', 'orbit', 'tilt', '3d'] },
+  { title: 'Petal Spin',        componentName: 'PetalSpinLoader',        Component: PetalSpinLoader,        category: 'advanced', description: 'Flower petals spinning outward and folding back in',              tags: ['petal', 'flower', 'spin', 'organic'] },
+  { title: 'Rotating Dashes',   componentName: 'RotatingDashesLoader',   Component: RotatingDashesLoader,   category: 'basic',    description: 'Clock-style tick marks spinning at variable speeds',             tags: ['dashes', 'clock', 'ticks', 'spin'] },
+  { title: 'Spin Pulse',        componentName: 'SpinPulseLoader',        Component: SpinPulseLoader,        category: 'basic',    description: 'Spinning arc that pulses in size as it rotates',                tags: ['spin', 'pulse', 'arc', 'breathe'] },
+  // v8 — Split / Merge
+  { title: 'Split Circle',      componentName: 'SplitCircleLoader',      Component: SplitCircleLoader,      category: 'split',    description: 'Circle splits into two halves that fly apart and reunite',       tags: ['split', 'circle', 'merge', 'halves'] },
+  { title: 'Merge Balls',       componentName: 'MergeBallsLoader',       Component: MergeBallsLoader,       category: 'split',    description: 'Balls converge to center, merge, then burst outward again',      tags: ['merge', 'balls', 'converge', 'burst'] },
+  { title: 'Burst',             componentName: 'BurstLoader',            Component: BurstLoader,            category: 'split',    description: 'Particles burst from center and collapse back in a cycle',       tags: ['burst', 'particles', 'expand', 'collapse'] },
+  { title: 'Split Square',      componentName: 'SplitSquareLoader',      Component: SplitSquareLoader,      category: 'split',    description: 'Square corners splitting apart and snapping back together',       tags: ['split', 'square', 'corners', 'snap'] },
+  { title: 'Atom Split',        componentName: 'AtomSplitLoader',        Component: AtomSplitLoader,        category: 'split',    description: 'Atomic orbits splitting and rejoining in rhythmic sequence',      tags: ['atom', 'split', 'orbit', 'science'] },
+  { title: 'Fission',           componentName: 'FissionLoader',          Component: FissionLoader,          category: 'split',    description: 'Central nucleus fracturing into segments that reform',            tags: ['fission', 'nucleus', 'fracture', 'reform'] },
+  { title: 'Expand Contract',   componentName: 'ExpandContractLoader',   Component: ExpandContractLoader,   category: 'split',    description: 'Ring segments expanding outward then contracting to center',      tags: ['expand', 'contract', 'segments', 'ring'] },
+  { title: 'Split Ring',        componentName: 'SplitRingLoader',        Component: SplitRingLoader,        category: 'split',    description: 'Ring breaks into arcs rotating away then snapping back',         tags: ['split', 'ring', 'arcs', 'rotate'] },
+  { title: 'Puzzle',            componentName: 'PuzzleLoader',           Component: PuzzleLoader,           category: 'split',    description: 'Puzzle pieces scattering apart and assembling back together',     tags: ['puzzle', 'pieces', 'assemble', 'scatter'] },
+  { title: 'Collide',           componentName: 'CollideLoader',          Component: CollideLoader,          category: 'split',    description: 'Two balls rushing toward each other and bouncing back',           tags: ['collide', 'balls', 'bounce', 'impact'] },
+  // v8 — Creative rotators
+  { title: 'Ying Yang',         componentName: 'YingYangLoader',         Component: YingYangLoader,         category: 'advanced', description: 'Yin-yang symbol spinning with pulsing opacity rhythm',            tags: ['yingyang', 'yin', 'yang', 'spiritual'] },
+  { title: 'Donut Spin',        componentName: 'DonutSpinLoader',        Component: DonutSpinLoader,        category: 'basic',    description: 'Thick donut ring spinning with a gradient highlight arc',         tags: ['donut', 'ring', 'gradient', 'spin'] },
+  { title: 'Pinwheel',          componentName: 'PinwheelLoader',         Component: PinwheelLoader,         category: 'advanced', description: 'Colorful pinwheel blades spinning in the breeze',                tags: ['pinwheel', 'blades', 'colorful', 'spin'] },
+  { title: 'Spin Squares',      componentName: 'SpinSquaresLoader',      Component: SpinSquaresLoader,      category: 'advanced', description: 'Nested squares at offset rotations spinning independently',        tags: ['spin', 'squares', 'nested', 'rotate'] },
+  { title: 'Flower Spin',       componentName: 'FlowerSpinLoader',       Component: FlowerSpinLoader,       category: 'advanced', description: 'Petal blobs forming a flower that rotates and breathes',          tags: ['flower', 'petals', 'spin', 'organic'] },
+  { title: 'Wheel Spin',        componentName: 'WheelSpinLoader',        Component: WheelSpinLoader,        category: 'advanced', description: 'Spoked wheel rotating with radial dash spokes',                  tags: ['wheel', 'spokes', 'spin', 'radial'] },
+  { title: 'Spiral Spin',       componentName: 'SpiralSpinLoader',       Component: SpiralSpinLoader,       category: 'advanced', description: 'Archimedean spiral path rotating and scaling in/out',            tags: ['spiral', 'archimedean', 'rotate', 'scale'] },
+  { title: 'Triple Merge',      componentName: 'TripleMergeLoader',      Component: TripleMergeLoader,      category: 'split',    description: 'Three balls spiraling in then merging at center, repeat',         tags: ['triple', 'merge', 'spiral', 'balls'] },
 ];
 
 const CATEGORY_META: Record<LoaderCategory, { label: string; color: string }> = {
@@ -471,7 +511,7 @@ const Sidebar = memo(({ open, search, onSearch, selected, activeSection, onSelec
       {/* Footer */}
       <div className="px-4 py-2.5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground shrink-0">
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-        <span>162+ components · MIT</span>
+        <span>192+ components · MIT</span>
       </div>
     </aside>
   );
@@ -633,11 +673,11 @@ const IntroSection = memo(() => (
     <div className="mb-8">
       <div className="inline-flex items-center gap-2 text-xs font-mono bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] border border-[hsl(var(--primary)/0.2)] px-3 py-1.5 rounded-full mb-5">
         <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-        v{PKG_VERSION} — 162+ components
+        v{PKG_VERSION} — 192+ components
       </div>
       <h1 className="text-4xl font-bold text-foreground mb-3 leading-tight">react-loader-animate</h1>
       <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
-        A comprehensive collection of 162+ beautiful, performance-optimized React loading animation components.
+        A comprehensive collection of 192+ beautiful, performance-optimized React loading animation components.
         TypeScript-first, Tailwind CSS powered, zero runtime dependencies.
       </p>
       <div className="flex flex-wrap gap-3">
@@ -654,7 +694,7 @@ const IntroSection = memo(() => (
 
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
       {[
-        { label: '162+ Components', desc: 'Ready to use' },
+        { label: '192+ Components', desc: 'Ready to use' },
         { label: 'TypeScript',     desc: 'Full type safety' },
         { label: 'Tree-shakeable', desc: 'Import only what you need' },
         { label: 'Zero deps',      desc: 'No runtime bloat' },
